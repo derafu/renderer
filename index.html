@@ -1,1 +1,102 @@
-Soon.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Derafu: Renderer - Unified Template Rendering Made Simple For PHP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.1.0/github-markdown-light.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://derafu.org/foundation/css/styles.min.css" rel="stylesheet" />
+    </head>
+<body class="derafu-theme-earthstone">
+                <div id="header-container" class="sticky-top"></div>
+    
+            <main>
+            <div class="container py-4">
+    <div class="markdown-body"><h1><a id="content-derafu-renderer---unified-template-rendering-made-simple-for-php" href="index.html#content-derafu-renderer---unified-template-rendering-made-simple-for-php" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Derafu: Renderer - Unified Template Rendering Made Simple For PHP</h1>
+<p><a rel="nofollow noopener noreferrer" target="_blank" class="external-link" href="https://github.com/derafu/renderer/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://github.com/derafu/renderer/actions/workflows/ci.yml/badge.svg?branch=main&amp;event=push" alt="CI Workflow" /></a>
+<a rel="nofollow noopener noreferrer" target="_blank" class="external-link" href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a></p>
+<p>A modern, flexible PHP template rendering library that provides a unified interface for multiple template engines and output formats.</p>
+<h2><a id="content-features" href="index.html#content-features" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Features</h2>
+<ul>
+<li>🔄 <strong>Unified Interface</strong>: One consistent API for all template engines.</li>
+<li>🚀 <strong>Multiple Engine Support</strong>: Works with Twig, PHP, Markdown and more.</li>
+<li>📄 <strong>Multiple Output Formats</strong>: Generate HTML, PDF from any template.</li>
+<li>🔌 <strong>Extensible Architecture</strong>: Easy to add new engines and formats.</li>
+<li>🎨 <strong>Powerful Formatting System</strong>: Format data consistently across all templates.</li>
+<li>🛡️ <strong>Secure by Design</strong>: Safe template rendering and file handling.</li>
+<li>🪶 <strong>Lightweight Core</strong>: Only load what you need.</li>
+<li>⚡ <strong>Framework Agnostic</strong>: Use with any PHP framework.</li>
+</ul>
+<h2><a id="content-why-derafurenderer" href="index.html#content-why-derafurenderer" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Why Derafu\Renderer?</h2>
+<p>Traditional template systems often lock you into a single engine or require different handling for each format. Derafu\Renderer solves this by providing:</p>
+<ul>
+<li>A single, clean API for all template engines.</li>
+<li>Seamless switching between output formats.</li>
+<li>Consistent data formatting across all templates.</li>
+<li>Framework-agnostic design.</li>
+<li>Easy integration with existing systems.</li>
+</ul>
+<h2><a id="content-installation" href="index.html#content-installation" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Installation</h2>
+<p>Install via Composer:</p>
+<pre><code class="language-bash">composer require derafu/renderer
+</code></pre>
+<h2><a id="content-basic-usage" href="index.html#content-basic-usage" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Basic Usage</h2>
+<pre><code class="language-php">use Derafu\Renderer\Factory\RendererFactory;
+
+// Create renderer with engines Twig and PDF.
+$renderer = RendererFactory::create([
+    'engines' =&gt; ['twig', 'pdf'],
+    'paths' =&gt; ['/path/to/templates'],
+]);
+
+// Render templates in different engines.
+$html = $renderer-&gt;render('template.html.twig', ['name' =&gt; 'John']);
+$pdf = $renderer-&gt;render('template.html.twig', ['name' =&gt; 'John'], ['engine' =&gt; 'pdf']);
+</code></pre>
+<h2><a id="content-template-engines" href="index.html#content-template-engines" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Template Engines</h2>
+<h3><a id="content-twig-templates" href="index.html#content-twig-templates" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Twig Templates</h3>
+<pre><code class="language-php">// template.html.twig
+&lt;h1&gt;Hello {{ name }}!&lt;/h1&gt;
+&lt;p&gt;Today is {{ date|format_as('date.long') }}&lt;/p&gt;
+</code></pre>
+<h3><a id="content-php-templates" href="index.html#content-php-templates" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>PHP Templates</h3>
+<pre><code class="language-php">// template.php
+&lt;h1&gt;Hello &lt;?= $name ?&gt;!&lt;/h1&gt;
+&lt;p&gt;Today is &lt;?= $format_as($date, 'date.long') ?&gt;&lt;/p&gt;
+</code></pre>
+<h3><a id="content-markdown-templates" href="index.html#content-markdown-templates" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Markdown Templates</h3>
+<pre><code class="language-markdown"># Hello {{ name }}!
+
+Today is {{ date }}
+</code></pre>
+<h2><a id="content-advanced-usage" href="index.html#content-advanced-usage" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Advanced Usage</h2>
+<h3><a id="content-custom-engine-configuration" href="index.html#content-custom-engine-configuration" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Custom Engine Configuration</h3>
+<pre><code class="language-php">$renderer = RendererFactory::create([
+    'engines' =&gt; ['twig', 'markdown', 'pdf'],
+    'paths' =&gt; ['/path/to/templates'],
+    'formatters' =&gt; [
+        'date' =&gt; function (string $date): string {
+            $timestamp = strtotime($date);
+            return date('d/m/Y', $timestamp);
+        },
+    ],
+]);
+</code></pre>
+<h2><a id="content-contributing" href="index.html#content-contributing" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Contributing</h2>
+<p>Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.</p>
+<h2><a id="content-license" href="index.html#content-license" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>License</h2>
+<p>This package is open-sourced software licensed under the <a rel="nofollow noopener noreferrer" target="_blank" class="external-link" href="https://opensource.org/licenses/MIT">MIT license</a>.</p>
+</div>
+</div>
+        </main>
+    
+            <div id="footer-container"></div>
+<script src="https://derafu.org/foundation/js/derafu.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    </body>
+</html>
