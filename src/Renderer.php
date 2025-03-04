@@ -74,13 +74,21 @@ class Renderer implements RendererInterface
     }
 
     /**
-     * Adds a new rendering engine.
-     *
-     * @param string $name Engine name.
-     * @param EngineInterface $engine Engine instance.
-     * @return static
+     * {@inheritDoc}
      */
-    private function addEngine(string $name, EngineInterface $engine): static
+    public function getEngine(string $name): EngineInterface
+    {
+        if (!isset($this->engines[$name])) {
+            throw EngineException::forEngine($name);
+        }
+
+        return $this->engines[$name];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function addEngine(string $name, EngineInterface $engine): static
     {
         $this->engines[$name] = $engine;
 
@@ -117,21 +125,5 @@ class Renderer implements RendererInterface
 
         // Use default engine if no specific engine could be determined.
         return $this->defaultEngine;
-    }
-
-    /**
-     * Gets a registered engine by name.
-     *
-     * @param string $name Engine name.
-     * @return EngineInterface
-     * @throws EngineException If the engine is not found.
-     */
-    private function getEngine(string $name): EngineInterface
-    {
-        if (!isset($this->engines[$name])) {
-            throw EngineException::forEngine($name);
-        }
-
-        return $this->engines[$name];
     }
 }

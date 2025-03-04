@@ -22,6 +22,7 @@ use Derafu\Renderer\Engine\Pdf\HtmlPdfEngine;
 use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Extension\TwigFormatterExtension;
 use Derafu\Renderer\Renderer;
+use Derafu\Twig\Contract\TwigServiceInterface;
 use Derafu\Twig\Provider\AllComponentProvider;
 use Derafu\Twig\Service\TwigService;
 
@@ -116,18 +117,10 @@ class RendererFactory
         $enabledEngines = $options['engines'] ?? self::DEFAULT_ENGINES;
         $formatters = $options['formatters'] ?? [];
         $formatter = new DataFormatter($formatters);
-        $extensions = $options['extensions'] ?? [];
-        $extensions[] = new TwigFormatterExtension($formatter);
-        $extra = $options['extra'] ?? true;
-        $components = $options['components'] ?? new AllComponentProvider();
+        $options['formatter'] = $formatter;
 
         // Create and configure Twig service.
-        $twigService = new TwigService([
-            'paths' => $paths,
-            'extensions' => $extensions,
-            'extra' => $extra,
-            'components' => $components,
-        ]);
+        $twigService = self::createTwigService($options);
 
         // Initialize engines array.
         $engines = [];
@@ -164,5 +157,38 @@ class RendererFactory
         }
 
         return new Renderer($engines);
+    }
+
+    /**
+     * Creates a new pre-configured Twig service instance.
+     *
+     * Creates a TwigService with specified paths, extensions, extra features,
+     * and component provider.
+     *
+     * @param array<string,mixed> $options Configuration options.
+     * @return TwigServiceInterface Configured Twig service instance.
+     */
+    private static function createTwigService(array $options = []): TwigServiceInterface
+    {
+        $paths = $options['paths'] ?? [];
+        $extensions = $options['extensions'] ?? [];
+        $extra = $options['extra'] ?? true;
+        $components = $options['components'] ?? new AllComponentProvider();
+
+        if (!isset($options['formatter'])) {
+            $formatters = $options['formatters'] ?? [];
+            $formatter = new DataFormatter($formatters);
+        } else {
+            $formatter = $options['formatter'];
+        }
+
+        $extensions[] = new TwigFormatterExtension($formatter);
+
+        return new TwigService([
+            'paths' => $paths,
+            'extensions' => $extensions,
+            'extra' => $extra,
+            'components' => $components,
+        ]);
     }
 }

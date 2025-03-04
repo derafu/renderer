@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Derafu\Renderer\Contract;
 
+use Derafu\Renderer\Exception\EngineException;
+
 interface RendererInterface
 {
     /**
@@ -27,4 +29,22 @@ interface RendererInterface
         array $data = [],
         array $options = []
     ): string;
+
+    /**
+     * Gets a registered engine by name.
+     *
+     * @param string $name Engine name.
+     * @return EngineInterface
+     * @throws EngineException If the engine is not found.
+     */
+    public function getEngine(string $name): EngineInterface;
+
+    /**
+     * Adds a new rendering engine.
+     *
+     * @param string $name Engine name.
+     * @param EngineInterface $engine Engine instance.
+     * @return static
+     */
+    public function addEngine(string $name, EngineInterface $engine): static;
 }

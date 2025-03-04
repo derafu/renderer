@@ -2,6 +2,7 @@
 var/
 vendor/
 composer.lock
+tests/rendered/
 
 # Node.js and Vite build.
 node_modules/
