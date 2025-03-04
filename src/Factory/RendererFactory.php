@@ -168,7 +168,7 @@ class RendererFactory
      * @param array<string,mixed> $options Configuration options.
      * @return TwigServiceInterface Configured Twig service instance.
      */
-    private static function createTwigService(array $options = []): TwigServiceInterface
+    public static function createTwigService(array $options = []): TwigServiceInterface
     {
         $paths = $options['paths'] ?? [];
         $extensions = $options['extensions'] ?? [];
