@@ -15,7 +15,6 @@ namespace Derafu\Renderer\Engine\Html;
 use Closure;
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Contract\FormatterInterface;
-use Derafu\Renderer\Exception\RenderingException;
 use Derafu\Renderer\Exception\TemplateNotFoundException;
 use Derafu\Twig\Contract\TwigServiceInterface;
 use Throwable;
@@ -74,28 +73,24 @@ class PhpHtmlEngine implements EngineInterface
             return ob_get_clean();
         };
 
-        try {
-            // Merge runtime options with template data.
-            $context = array_replace_recursive(
-                ['options' => $options],
-                $this->createClosures(),
-                $data
-            );
+        // Merge runtime options with template data.
+        $context = array_replace_recursive(
+            ['options' => $options],
+            $this->createClosures(),
+            $data
+        );
 
-            // Render template with the context.
-            $html = $render($file, $context);
+        // Render template with the context.
+        $html = $render($file, $context);
 
-            // Render wrapper with twig template.
-            $wrapperTemplate = $context['wrapperTemplate'] ?? $this->wrapperTemplate;
-            $wrapperContext = array_merge(
-                $context,
-                [$this->contentVarName => $html]
-            );
+        // Render wrapper with twig template.
+        $wrapperTemplate = $context['wrapperTemplate'] ?? $this->wrapperTemplate;
+        $wrapperContext = array_merge(
+            $context,
+            [$this->contentVarName => $html]
+        );
 
-            return $this->twigService->render($wrapperTemplate, $wrapperContext);
-        } catch (Throwable $e) {
-            throw RenderingException::forTemplate($template, $e->getMessage());
-        }
+        return $this->twigService->render($wrapperTemplate, $wrapperContext);
     }
 
     /**

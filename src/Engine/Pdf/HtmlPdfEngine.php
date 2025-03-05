@@ -14,7 +14,6 @@ namespace Derafu\Renderer\Engine\Pdf;
 
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Exception\ConfigurationException;
-use Derafu\Renderer\Exception\RenderingException;
 use Derafu\Twig\Contract\TwigServiceInterface;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
@@ -38,25 +37,21 @@ class HtmlPdfEngine implements EngineInterface
         array $data = [],
         array $options = []
     ): string {
-        try {
-            // Merge runtime options with template data.
-            $context = array_replace_recursive(
-                ['options' => $options],
-                $data
-            );
+        // Merge runtime options with template data.
+        $context = array_replace_recursive(
+            ['options' => $options],
+            $data
+        );
 
-            // Render template to HTML using the Twig service.
-            $html = $this->twigService->render($template, $context);
+        // Render template to HTML using the Twig service.
+        $html = $this->twigService->render($template, $context);
 
-            // Create PDF from HTML.
-            $pdf = $this->getPdf($options);
-            $pdf->WriteHTML($html);
+        // Create PDF from HTML.
+        $pdf = $this->getPdf($options);
+        $pdf->WriteHTML($html);
 
-            // Return PDF content as string.
-            return $pdf->Output('', Destination::STRING_RETURN);
-        } catch (Throwable $e) {
-            throw RenderingException::forTemplate($template, $e->getMessage());
-        }
+        // Return PDF content as string.
+        return $pdf->Output('', Destination::STRING_RETURN);
     }
 
     /**

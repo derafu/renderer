@@ -14,9 +14,7 @@ namespace Derafu\Renderer\Engine\Html;
 
 use Derafu\Markdown\Contract\MarkdownServiceInterface;
 use Derafu\Renderer\Contract\EngineInterface;
-use Derafu\Renderer\Exception\RenderingException;
 use Derafu\Twig\Contract\TwigServiceInterface;
-use Throwable;
 
 /**
  * Markdown template engine implementation using CommonMark.
@@ -39,24 +37,20 @@ class MarkdownHtmlEngine implements EngineInterface
         array $data = [],
         array $options = []
     ): string {
-        try {
-            // Merge runtime options with template data.
-            $context = array_replace_recursive(['options' => $options], $data);
+        // Merge runtime options with template data.
+        $context = array_replace_recursive(['options' => $options], $data);
 
-            // Render template with the context.
-            $html = $this->markdownService->render($template, $context);
+        // Render template with the context.
+        $html = $this->markdownService->render($template, $context);
 
-            // Render wrapper with twig template.
-            $wrapperTemplate = $context['wrapperTemplate'] ?? $this->wrapperTemplate;
-            $wrapperContext = array_merge(
-                $context,
-                [$this->contentVarName => $html]
-            );
+        // Render wrapper with twig template.
+        $wrapperTemplate = $context['wrapperTemplate'] ?? $this->wrapperTemplate;
+        $wrapperContext = array_merge(
+            $context,
+            [$this->contentVarName => $html]
+        );
 
-            return $this->twigService->render($wrapperTemplate, $wrapperContext);
-        } catch (Throwable $e) {
-            throw RenderingException::forTemplate($template, $e->getMessage());
-        }
+        return $this->twigService->render($wrapperTemplate, $wrapperContext);
     }
 
     /**
