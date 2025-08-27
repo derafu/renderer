@@ -47,7 +47,8 @@ class HtmlPdfEngine implements EngineInterface
         $html = $this->twigService->render($template, $context);
 
         // Create PDF from HTML.
-        $pdf = $this->getPdf($options);
+        $pdfOptions = $options['config']['pdf'] ?? $options['pdf'] ?? $options;
+        $pdf = $this->getPdf($pdfOptions);
         $pdf->WriteHTML($html);
 
         // Return PDF content as string.

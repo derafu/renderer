@@ -109,11 +109,14 @@ class Renderer implements RendererInterface
      */
     private function determineEngine(string $template, array &$options): string
     {
-        // If format is explicitly specified in options, use that engine.
+        // If engine is explicitly specified in options, use that engine.
         if (!empty($options['engine'])) {
-            $engine = $options['engine'];
-            unset($options['engine']);
-            return $engine;
+            return $options['engine'];
+        }
+
+        // If format is explicitly specified in options, translate it to engine.
+        if (!empty($options['format'])) {
+            return $this->formatToEngine($options['format']);
         }
 
         // Try to determine engine from file extension.
@@ -125,5 +128,20 @@ class Renderer implements RendererInterface
 
         // Use default engine if no specific engine could be determined.
         return $this->defaultEngine;
+    }
+
+    /**
+     * Translates a format to an engine name.
+     *
+     * @param string $format Format to translate.
+     * @return string Engine name.
+     */
+    private function formatToEngine(string $format): string
+    {
+        return match ($format) {
+            'html' => 'twig',
+            'pdf' => 'pdf',
+            default => $format,
+        };
     }
 }
