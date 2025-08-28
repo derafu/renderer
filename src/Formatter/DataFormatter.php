@@ -47,8 +47,7 @@ final class DataFormatter implements FormatterInterface
         string $name,
         string|array|object $handler
     ): static {
-        $handlerName = $name;
-        $this->handlers[$handlerName] = $handler;
+        $this->handlers[$name] = $handler;
 
         return $this;
     }
