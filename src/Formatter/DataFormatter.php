@@ -58,6 +58,11 @@ final class DataFormatter implements FormatterInterface
      */
     public function format(mixed $value, string $format): string
     {
+        // Handle null values as empty string.
+        if ($value === null) {
+            return '';
+        }
+
         [$handlerName, $specificFormat] = $this->resolveHandler($format);
         $handler = $this->handlers[$handlerName] ?? $handlerName;
 
