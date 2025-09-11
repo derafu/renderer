@@ -80,6 +80,10 @@ class HtmlPdfEngine implements EngineInterface
      */
     private function getPdf(array $options = []): Mpdf
     {
+        if (empty($options['tempDir'])) {
+            $options['tempDir'] = sys_get_temp_dir();
+        }
+
         try {
             return new Mpdf($options);
         } catch (Throwable $e) {
