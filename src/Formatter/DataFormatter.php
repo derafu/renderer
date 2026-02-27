@@ -63,6 +63,11 @@ final class DataFormatter implements FormatterInterface
         }
 
         [$handlerName, $specificFormat] = $this->resolveHandler($format);
+
+        if ($handlerName === null) {
+            return $this->getGenericHandler()->handle($value, $format);
+        }
+
         $handler = $this->handlers[$handlerName] ?? $handlerName;
 
         try {
@@ -83,7 +88,7 @@ final class DataFormatter implements FormatterInterface
      * Resolves the handler and specific format of the handler.
      *
      * @param string $format
-     * @return array
+     * @return array<string|int|null,string|null>
      */
     private function resolveHandler(string $format): array
     {
