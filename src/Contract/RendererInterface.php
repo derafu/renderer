@@ -20,12 +20,26 @@ interface RendererInterface
      * Renders a template with the given data.
      *
      * @param string $template Path or name of the template to render.
-     * @param array $data Data to pass to the template.
-     * @param array $options Rendering options (format, config, etc).
+     * @param array<string,mixed> $data Data to pass to the template.
+     * @param array<string,mixed> $options Rendering options (format, config, etc).
      * @return string Rendered content.
      */
     public function render(
         string $template,
+        array $data = [],
+        array $options = []
+    ): string;
+
+    /**
+     * Renders a string template with the given data.
+     *
+     * @param string $content Template content.
+     * @param array<string,mixed> $data Data to pass to the template.
+     * @param array<string,mixed> $options Rendering options (format, config, etc).
+     * @return string Rendered content.
+     */
+    public function renderFromString(
+        string $content,
         array $data = [],
         array $options = []
     ): string;

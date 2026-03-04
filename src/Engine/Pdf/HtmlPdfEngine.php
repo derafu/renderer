@@ -15,6 +15,7 @@ namespace Derafu\Renderer\Engine\Pdf;
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Twig\Contract\TwigServiceInterface;
+use LogicException;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 use Throwable;
@@ -52,6 +53,17 @@ class HtmlPdfEngine implements EngineInterface
 
         // Return PDF content as string.
         return $pdf->Output('', Destination::STRING_RETURN);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function renderFromString(
+        string $content,
+        array $data = [],
+        array $options = []
+    ): string {
+        throw new LogicException('Rendering from string is not yet supported for HTML PDF engine.');
     }
 
     /**

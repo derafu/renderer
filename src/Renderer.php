@@ -76,6 +76,24 @@ class Renderer implements RendererInterface
     /**
      * {@inheritDoc}
      */
+    public function renderFromString(
+        string $content,
+        array $data = [],
+        array $options = []
+    ): string {
+        // Determine which engine to use.
+        $engineName = $this->determineEngine($content, $options);
+
+        // Get the engine.
+        $engine = $this->getEngine($engineName);
+
+        // Render the template.
+        return $engine->renderFromString($content, $data, $options);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getEngine(string $name): EngineInterface
     {
         if (!isset($this->engines[$name])) {

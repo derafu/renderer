@@ -43,8 +43,48 @@ class MarkdownHtmlEngine implements EngineInterface
         // Render template with the context.
         $html = $this->markdownService->render($template, $context);
 
+        // Determine if we need to render a wrapper template.
+        $wrapperTemplate = $context['wrapperTemplate']
+            ?? $context['options']['wrapperTemplate']
+            ?? $this->wrapperTemplate
+        ;
+        if ($wrapperTemplate === false) {
+            return $html;
+        }
+
         // Render wrapper with twig template.
-        $wrapperTemplate = $context['wrapperTemplate'] ?? $this->wrapperTemplate;
+        $wrapperContext = array_merge(
+            $context,
+            [$this->contentVarName => $html]
+        );
+
+        return $this->twigService->render($wrapperTemplate, $wrapperContext);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function renderFromString(
+        string $content,
+        array $data = [],
+        array $options = []
+    ): string {
+        // Merge runtime options with template data.
+        $context = array_replace_recursive(['options' => $options], $data);
+
+        // Render template with the context.
+        $html = $this->markdownService->renderFromString($content, $context);
+
+        // Determine if we need to render a wrapper template.
+        $wrapperTemplate = $context['wrapperTemplate']
+            ?? $context['options']['wrapperTemplate']
+            ?? $this->wrapperTemplate
+        ;
+        if ($wrapperTemplate === false) {
+            return $html;
+        }
+
+        // Render wrapper with twig template.
         $wrapperContext = array_merge(
             $context,
             [$this->contentVarName => $html]

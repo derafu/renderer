@@ -17,6 +17,7 @@ use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Exception\TemplateNotFoundException;
 use Derafu\Twig\Contract\TwigServiceInterface;
+use LogicException;
 use Throwable;
 
 /**
@@ -91,6 +92,17 @@ class PhpHtmlEngine implements EngineInterface
         );
 
         return $this->twigService->render($wrapperTemplate, $wrapperContext);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function renderFromString(
+        string $content,
+        array $data = [],
+        array $options = []
+    ): string {
+        throw new LogicException('Rendering from string is not yet supported for PHP HTML engine.');
     }
 
     /**

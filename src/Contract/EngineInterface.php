@@ -32,6 +32,20 @@ interface EngineInterface
     ): string;
 
     /**
+     * Renders a string template with the given data.
+     *
+     * @param string $content Template content.
+     * @param array<string,mixed> $data Data to pass to the template.
+     * @param array<string,mixed> $options Rendering options (format, config, etc).
+     * @return string Rendered content.
+     */
+    public function renderFromString(
+        string $content,
+        array $data = [],
+        array $options = []
+    ): string;
+
+    /**
      * Returns the file extensions supported by this engine.
      *
      * @return array<string> List of supported file extensions (without dot).
