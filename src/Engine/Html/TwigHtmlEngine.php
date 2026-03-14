@@ -14,13 +14,15 @@ namespace Derafu\Renderer\Engine\Html;
 
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
-use LogicException;
 
 /**
  * Twig template engine implementation.
  */
 class TwigHtmlEngine implements EngineInterface
 {
+    /**
+     * @param TwigServiceInterface $twigService
+     */
     public function __construct(private TwigServiceInterface $twigService)
     {
     }
@@ -48,7 +50,11 @@ class TwigHtmlEngine implements EngineInterface
         array $data = [],
         array $options = []
     ): string {
-        throw new LogicException('Rendering from string is not yet supported for Twig HTML engine.');
+        // Merge runtime options with template data.
+        $context = array_replace_recursive(['options' => $options], $data);
+
+        // Render template with the context.
+        return $this->twigService->renderFromString($content, $context);
     }
 
     /**

@@ -21,6 +21,12 @@ use Derafu\Twig\Contract\TwigServiceInterface;
  */
 class MarkdownHtmlEngine implements EngineInterface
 {
+    /**
+     * @param MarkdownServiceInterface $markdownService
+     * @param TwigServiceInterface $twigService
+     * @param ?string $wrapperTemplate
+     * @param string $contentVarName
+     */
     public function __construct(
         private MarkdownServiceInterface $markdownService,
         private TwigServiceInterface $twigService,

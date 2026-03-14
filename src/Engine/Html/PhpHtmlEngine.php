@@ -25,6 +25,14 @@ use Throwable;
  */
 class PhpHtmlEngine implements EngineInterface
 {
+    /**
+     * @param TwigServiceInterface $twigService
+     * @param FormatterInterface $formatter
+     * @param array<string> $paths
+     * @param string $wrapperTemplate
+     * @param string $contentVarName
+     * @param string $varsPrefix
+     */
     public function __construct(
         private TwigServiceInterface $twigService,
         private readonly FormatterInterface $formatter,
@@ -102,7 +110,9 @@ class PhpHtmlEngine implements EngineInterface
         array $data = [],
         array $options = []
     ): string {
-        throw new LogicException('Rendering from string is not yet supported for PHP HTML engine.');
+        throw new LogicException(
+            'Rendering from string is not yet supported for PHP HTML engine.'
+        );
     }
 
     /**
@@ -137,7 +147,10 @@ class PhpHtmlEngine implements EngineInterface
         }
 
         // Add extension if not present.
-        if (!str_ends_with($template, '.php') && !str_ends_with($template, '.phtml')) {
+        if (
+            !str_ends_with($template, '.php')
+            && !str_ends_with($template, '.phtml')
+        ) {
             $template .= '.php';
         }
 

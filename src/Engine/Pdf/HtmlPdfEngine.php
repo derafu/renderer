@@ -25,6 +25,30 @@ use Throwable;
  */
 class HtmlPdfEngine implements EngineInterface
 {
+    /**
+     * Strategy to use for PDF rendering.
+     *
+     * @var string
+     */
+    public const STRATEGY_MPDF = 'mpdf';
+
+    /**
+     * Strategy to use for PDF rendering.
+     *
+     * @var string
+     */
+    public const STRATEGY_CHROME = 'chrome';
+
+    /**
+     * Default strategy to use when no strategy is specified.
+     *
+     * @var string
+     */
+    private const DEFAULT_STRATEGY = self::STRATEGY_MPDF;
+
+    /**
+     * @param TwigServiceInterface $twigService
+     */
     public function __construct(
         private readonly TwigServiceInterface $twigService
     ) {
@@ -47,12 +71,8 @@ class HtmlPdfEngine implements EngineInterface
         // Render template to HTML using the Twig service.
         $html = $this->twigService->render($template, $context);
 
-        // Create PDF from HTML.
-        $pdf = $this->getPdf($options['config']['pdf'] ?? []);
-        $pdf->WriteHTML($html);
-
-        // Return PDF content as string.
-        return $pdf->Output('', Destination::STRING_RETURN);
+        // Write HTML to PDF.
+        return $this->writeHtmlToPdf($html, $options);
     }
 
     /**
@@ -63,7 +83,17 @@ class HtmlPdfEngine implements EngineInterface
         array $data = [],
         array $options = []
     ): string {
-        throw new LogicException('Rendering from string is not yet supported for HTML PDF engine.');
+        // Merge runtime options with template data.
+        $context = array_replace_recursive(
+            ['options' => $options],
+            $data
+        );
+
+        // Render template to HTML using the Twig service.
+        $html = $this->twigService->renderFromString($content, $context);
+
+        // Write HTML to PDF.
+        return $this->writeHtmlToPdf($html, $options);
     }
 
     /**
@@ -83,6 +113,55 @@ class HtmlPdfEngine implements EngineInterface
     }
 
     /**
+     * Writes HTML to PDF.
+     *
+     * @param string $html HTML content.
+     * @param array<string,mixed> $options Runtime options.
+     * @return string PDF content.
+     */
+    private function writeHtmlToPdf(
+        string $html,
+        array $options
+    ): string {
+        // Create PDF from HTML using the selected strategy.
+        $strategy = $options['strategy'] ?? self::DEFAULT_STRATEGY;
+        $pdfConfig = $options['config']['pdf'] ?? [];
+
+        // Use mPDF strategy.
+        if ($strategy === self::STRATEGY_MPDF) {
+            return $this->writeHtmlToPdfWithMpdf($html, $pdfConfig);
+        }
+
+        // Use Chrome strategy.
+        if ($strategy === self::STRATEGY_CHROME) {
+            return $this->writeHtmlToPdfWithChrome($html, $pdfConfig);
+        }
+
+        // The selected strategy is not supported.
+        throw new LogicException(sprintf(
+            'Unsupported strategy for PDF rendering: %s',
+            $strategy
+        ));
+    }
+
+    /**
+     * Writes HTML to PDF using mPDF.
+     *
+     * @param string $html HTML content.
+     * @param array<string,mixed> $options Runtime options.
+     * @return string PDF content.
+     */
+    private function writeHtmlToPdfWithMpdf(
+        string $html,
+        array $options
+    ): string {
+        $pdf = $this->getMpdfInstance($options);
+        $pdf->WriteHTML($html);
+
+        return $pdf->Output('', Destination::STRING_RETURN);
+    }
+
+    /**
      * Gets or creates the PDF instance.
      *
      * Create new instance for each render to avoid state issues.
@@ -90,7 +169,7 @@ class HtmlPdfEngine implements EngineInterface
      * @param array<string,mixed> $options Runtime options.
      * @return Mpdf
      */
-    private function getPdf(array $options = []): Mpdf
+    private function getMpdfInstance(array $options = []): Mpdf
     {
         if (empty($options['tempDir'])) {
             $options['tempDir'] = sys_get_temp_dir();
@@ -105,5 +184,21 @@ class HtmlPdfEngine implements EngineInterface
                 $e->getMessage()
             );
         }
+    }
+
+    /**
+     * Writes HTML to PDF using Chrome.
+     *
+     * @param string $html HTML content.
+     * @param array<string,mixed> $options Runtime options.
+     * @return string PDF content.
+     */
+    private function writeHtmlToPdfWithChrome(
+        string $html,
+        array $options
+    ): string {
+        throw new LogicException(
+            'Writing HTML to PDF using Chrome is not yet supported.'
+        );
     }
 }
