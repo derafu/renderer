@@ -100,7 +100,8 @@ class RendererFactory
      *   formatters?: array<string,mixed>,
      *   extensions?: array<\Twig\Extension\ExtensionInterface>,
      *   extra?: bool,
-     *   components?: \Derafu\Twig\Contract\ComponentProviderInterface
+     *   components?: \Derafu\Twig\Contract\ComponentProviderInterface,
+     *   pdf?: array<string,mixed>
      * } $options Configuration options:
      *   - paths: Array of template directory paths
      *   - engines: Array of engine names to enable (default: ['twig'])
@@ -108,6 +109,9 @@ class RendererFactory
      *   - extensions: Array of additional Twig extensions
      *   - extra: Whether to enable extra Twig features
      *   - components: Component provider for Twig
+     *   - pdf: Options passed to the PDF engine (see HtmlPdfEngine), e.g.
+     *     'local_assets_path' to resolve root-relative image sources
+     *     against the local filesystem instead of over HTTP
      * @return RendererInterface Configured renderer instance
      */
     public static function create(array $options = []): RendererInterface
@@ -145,7 +149,7 @@ class RendererFactory
                         $formatter,
                         $paths
                     ),
-                    'pdf' => new HtmlPdfEngine($twigService),
+                    'pdf' => new HtmlPdfEngine($twigService, $options['pdf'] ?? []),
                 };
             }
         }

@@ -48,9 +48,17 @@ class HtmlPdfEngine implements EngineInterface
 
     /**
      * @param TwigServiceInterface $twigService
+     * @param array<string,mixed> $options Engine options.
+     *
+     * Supported keys:
+     *   - local_assets_path: base directory used to resolve root-relative
+     *     image sources ("/img/foo.png") against the local filesystem
+     *     instead of letting mPDF fetch them over HTTP. See
+     *     resolveLocalPath().
      */
     public function __construct(
-        private readonly TwigServiceInterface $twigService
+        private readonly TwigServiceInterface $twigService,
+        private readonly array $options = []
     ) {
     }
 
@@ -155,10 +163,106 @@ class HtmlPdfEngine implements EngineInterface
         string $html,
         array $options
     ): string {
+        // A per-call override takes precedence over the one configured once
+        // when this engine was built; resolveLocalPath() falls back to
+        // auto-detecting it (DOCUMENT_ROOT) if neither is set.
+        $localAssetsPath = $options['local_assets_path']
+            ?? $this->options['local_assets_path']
+            ?? null;
+        unset($options['local_assets_path']);
+
+        $html = $this->rewriteLocalImageSources($html, $localAssetsPath);
+
         $pdf = $this->getMpdfInstance($options);
         $pdf->WriteHTML($html);
 
         return $pdf->Output('', Destination::STRING_RETURN);
+    }
+
+    /**
+     * Rewrites root-relative <img> sources ("/img/foo.png") to a real local
+     * filesystem path when one can be resolved, so mPDF reads the file
+     * directly from disk instead of trying to fetch it over HTTP.
+     *
+     * Without this, mPDF resolves a root-relative image against the current
+     * request's own host (there is no other reference point available),
+     * turning it into a URL that points back at the very server rendering
+     * the PDF. Fetching that URL blocks until the request's own execution
+     * time limit kills the process — on a single-worker server (e.g. PHP's
+     * built-in dev server) that takes the whole server down; on a
+     * multi-worker one it still ties up a worker for no reason, since the
+     * file is already on the same local disk.
+     *
+     * Sources that already point to a real file (an absolute filesystem
+     * path unrelated to this site, or one already resolved) are left
+     * untouched, as are protocol-relative ("//cdn...") and scheme-based
+     * ("http://...") sources, which are not this package's concern.
+     *
+     * @param string $html HTML content.
+     * @param string|null $localAssetsPathOverride Explicit base directory,
+     * if one was configured (call-level or engine-level).
+     * @return string HTML with resolvable image sources rewritten.
+     */
+    private function rewriteLocalImageSources(
+        string $html,
+        ?string $localAssetsPathOverride
+    ): string {
+        return preg_replace_callback(
+            '/<img\b[^>]*\bsrc\s*=\s*(["\'])(.*?)\1/i',
+            function (array $matches) use ($localAssetsPathOverride) {
+                $src = $matches[2];
+
+                if (is_file($src)) {
+                    return $matches[0];
+                }
+
+                if (!str_starts_with($src, '/') || str_starts_with($src, '//')) {
+                    return $matches[0];
+                }
+
+                $resolved = $this->resolveLocalPath($src, $localAssetsPathOverride);
+
+                return $resolved === null
+                    ? $matches[0]
+                    : str_replace($src, $resolved, $matches[0]);
+            },
+            $html
+        ) ?? $html;
+    }
+
+    /**
+     * Resolves a root-relative path against a short list of candidate base
+     * directories, in order: an explicit override, the request's own
+     * document root, and that document root's "static" subdirectory (the
+     * convention used by Derafu\Http\Middleware\StaticFilesMiddleware).
+     * Returns the first candidate that is a real, readable file, or null if
+     * none of them are.
+     *
+     * @param string $src Root-relative source, e.g. "/img/foo.png".
+     * @param string|null $override Explicit base directory, if any.
+     * @return string|null
+     */
+    private function resolveLocalPath(string $src, ?string $override): ?string
+    {
+        $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+
+        // array_filter() drops null (and empty-string) entries, so every
+        // $base reaching the loop below is guaranteed to be a non-empty
+        // string — no need to check for null inside the loop.
+        $candidates = array_filter([
+            $override,
+            $documentRoot,
+            $documentRoot !== null ? $documentRoot . '/static' : null,
+        ]);
+
+        foreach ($candidates as $base) {
+            $candidate = rtrim($base, '/') . $src;
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -64,7 +64,10 @@ class CustomTemplateTest extends TestCase
     {
         $template = __DIR__ . '/../fixtures/custom_template';
         $html = $this->renderer->render($template, $this->data);
-        $this->assertIsString($html);
+        $this->assertStringContainsString('<h1>Derafu</h1>', $html);
+        // Twig auto-escapes HTML output: "<3" becomes "&lt;3".
+        $this->assertStringContainsString('<p>I Love Derafu &lt;3</p>', $html);
+        $this->assertStringContainsString('Hoy es ' . date('d/m/Y') . '.', $html);
         $this->saveRendered($template, 'html', $html);
     }
 
@@ -72,7 +75,7 @@ class CustomTemplateTest extends TestCase
     {
         $template = __DIR__ . '/../fixtures/custom_template';
         $pdf = $this->renderer->render($template, $this->data, ['engine' => 'pdf']);
-        $this->assertIsString($pdf);
+        $this->assertStringStartsWith('%PDF-', $pdf);
         $this->saveRendered($template, 'pdf', $pdf);
     }
 
@@ -80,7 +83,7 @@ class CustomTemplateTest extends TestCase
     {
         $template = __DIR__ . '/../fixtures/custom_template.pdf.twig';
         $pdf = $this->renderer->render($template, $this->data);
-        $this->assertIsString($pdf);
+        $this->assertStringStartsWith('%PDF-', $pdf);
         $this->saveRendered($template, 'pdf', $pdf);
     }
 
@@ -88,7 +91,12 @@ class CustomTemplateTest extends TestCase
     {
         $template = __DIR__ . '/../fixtures/custom_template.md';
         $html = $this->renderer->render($template, $this->data);
-        $this->assertIsString($html);
+        // The Markdown engine wraps the heading text with a permalink
+        // anchor, so only the closing tag position is stable to assert on.
+        $this->assertStringContainsString('Derafu</h1>', $html);
+        $this->assertStringContainsString('<p>I Love Derafu &lt;3</p>', $html);
+        // custom_template.md uses {{ date }} directly, with no formatter.
+        $this->assertStringContainsString('Hoy es ' . $this->data['date'] . '.', $html);
         $this->saveRendered($template, 'html', $html);
     }
 
@@ -96,7 +104,10 @@ class CustomTemplateTest extends TestCase
     {
         $template = __DIR__ . '/../fixtures/custom_template.php';
         $html = $this->renderer->render($template, $this->data);
-        $this->assertIsString($html);
+        $this->assertStringContainsString('<h1>Derafu</h1>', $html);
+        // Unlike the Twig engine, plain PHP templates do not auto-escape.
+        $this->assertStringContainsString('<p>I Love Derafu <3</p>', $html);
+        $this->assertStringContainsString('Hoy es ' . date('d/m/Y') . '.', $html);
         $this->saveRendered($template, 'html', $html);
     }
 
