@@ -169,7 +169,30 @@ final class HtmlPdfEngineLocalAssetsTest extends TestCase
             $resolve->invoke($engine, '/img/logo.png', null)
         );
 
+        // DOCUMENT_ROOT points one level above the real public/ directory
+        // (a Deployer-style "current" release symlink, fronted by Caddy's
+        // `root * .../current` + `try_files public/index.php`, reports
+        // DOCUMENT_ROOT as .../current instead of .../current/public).
+        // Neither the plain nor "/static" candidates exist here, only
+        // "/public".
+        $_SERVER['DOCUMENT_ROOT'] = self::FIXTURES_DIR . '/deployer-style';
+        $this->assertSame(
+            self::FIXTURES_DIR . '/deployer-style/public/img/logo.png',
+            $resolve->invoke($engine, '/img/logo.png', null)
+        );
+
+        // Same DOCUMENT_ROOT-above-public/ deployment, but the asset only
+        // exists under "/public/static" (public/ itself has no "/img" of
+        // its own here) — proves that candidate is also tried, not just
+        // "/public" alone.
+        $_SERVER['DOCUMENT_ROOT'] = self::FIXTURES_DIR . '/deployer-style-static-only';
+        $this->assertSame(
+            self::FIXTURES_DIR . '/deployer-style-static-only/public/static/img/logo.png',
+            $resolve->invoke($engine, '/img/logo.png', null)
+        );
+
         // Nothing resolves it anywhere: null.
+        $_SERVER['DOCUMENT_ROOT'] = self::FIXTURES_DIR;
         $this->assertNull(
             $resolve->invoke($engine, '/img/no-existe-en-ningun-lado.png', null)
         );

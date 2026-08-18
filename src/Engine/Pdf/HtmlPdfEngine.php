@@ -233,10 +233,15 @@ class HtmlPdfEngine implements EngineInterface
     /**
      * Resolves a root-relative path against a short list of candidate base
      * directories, in order: an explicit override, the request's own
-     * document root, and that document root's "static" subdirectory (the
-     * convention used by Derafu\Http\Middleware\StaticFilesMiddleware).
-     * Returns the first candidate that is a real, readable file, or null if
-     * none of them are.
+     * document root, that document root's "static" subdirectory (the
+     * convention used by Derafu\Http\Middleware\StaticFilesMiddleware), and
+     * — since some deployments (e.g. a Deployer-style "current" release
+     * symlink fronted by Caddy's `root * .../current` with a
+     * `try_files public/index.php` rule) report a DOCUMENT_ROOT that is
+     * itself one level above the real public/ directory — that same
+     * document root with "/public" and "/public/static" appended. Returns
+     * the first candidate that is a real, readable file, or null if none
+     * of them are.
      *
      * @param string $src Root-relative source, e.g. "/img/foo.png".
      * @param string|null $override Explicit base directory, if any.
@@ -253,6 +258,8 @@ class HtmlPdfEngine implements EngineInterface
             $override,
             $documentRoot,
             $documentRoot !== null ? $documentRoot . '/static' : null,
+            $documentRoot !== null ? $documentRoot . '/public' : null,
+            $documentRoot !== null ? $documentRoot . '/public/static' : null,
         ]);
 
         foreach ($candidates as $base) {
