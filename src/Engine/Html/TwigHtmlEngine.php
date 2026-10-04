@@ -14,6 +14,7 @@ namespace Derafu\Renderer\Engine\Html;
 
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
+use Twig\Environment;
 
 /**
  * Twig template engine implementation.
@@ -25,6 +26,24 @@ class TwigHtmlEngine implements EngineInterface
      */
     public function __construct(private TwigServiceInterface $twigService)
     {
+    }
+
+    /**
+     * Returns the Twig environment this engine uses.
+     *
+     * It is the same one that renders the templates, with its loader, its
+     * functions, filters, tags and extensions, so it can be used to work with
+     * them: inspect what is registered, find a template, parse or compile one,
+     * and so on.
+     *
+     * Rendering directly with it skips what this engine adds to the context
+     * (the `options` variable): to render, use the renderer.
+     *
+     * @return Environment
+     */
+    public function getTwig(): Environment
+    {
+        return $this->twigService->getTwig();
     }
 
     /**
