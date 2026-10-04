@@ -14,8 +14,8 @@ namespace Derafu\Renderer\Engine\Pdf;
 
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Exception\ConfigurationException;
+use Derafu\Translation\Exception\Core\TranslatableLogicException as LogicException;
 use Derafu\Twig\Contract\TwigServiceInterface;
-use LogicException;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 use Throwable;
@@ -146,10 +146,10 @@ class HtmlPdfEngine implements EngineInterface
         }
 
         // The selected strategy is not supported.
-        throw new LogicException(sprintf(
-            'Unsupported strategy for PDF rendering: %s',
-            $strategy
-        ));
+        throw new LogicException([
+            'Unsupported strategy for PDF rendering: {strategy}',
+            'strategy' => $strategy,
+        ]);
     }
 
     /**

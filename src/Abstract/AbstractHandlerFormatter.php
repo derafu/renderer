@@ -44,10 +44,10 @@ abstract class AbstractHandlerFormatter implements HandlerFormatterInterface
         $handler = $this->getHandlers()[$format] ?? null;
 
         if ($handler === null) {
-            throw new FormatterException(sprintf(
-                'Handler for the format "%s" not found.',
-                $format
-            ));
+            throw new FormatterException([
+                'Handler for the format "{format}" not found.',
+                'format' => $format,
+            ]);
         }
 
         if (is_string($handler) && str_contains($handler, 'alias:')) {

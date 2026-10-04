@@ -19,25 +19,25 @@ final class EngineException extends RendererException
 {
     public static function forEngine(string $engine): static
     {
-        return new static(sprintf('Rendering engine "%s" not found.', $engine));
+        return new static(['Rendering engine "{engine}" not found.', 'engine' => $engine]);
     }
 
     public static function forExtension(string $extension): static
     {
-        return new static(sprintf(
-            'No engine found for extension "%s".',
-            $extension
-        ));
+        return new static([
+            'No engine found for extension "{extension}".',
+            'extension' => $extension,
+        ]);
     }
 
     public static function forUnsupportedFeature(
         string $engine,
         string $feature
     ): static {
-        return new static(sprintf(
-            'Engine "%s" does not support feature: %s.',
-            $engine,
-            $feature
-        ));
+        return new static([
+            'Engine "{engine}" does not support feature: {feature}.',
+            'engine' => $engine,
+            'feature' => $feature,
+        ]);
     }
 }

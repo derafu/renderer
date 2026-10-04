@@ -19,17 +19,17 @@ final class TemplateNotFoundException extends RendererException
 {
     public static function forTemplate(string $template): static
     {
-        return new static(sprintf(
-            'Template "%s" not found or is not readable.',
-            $template
-        ));
+        return new static([
+            'Template "{template}" not found or is not readable.',
+            'template' => $template,
+        ]);
     }
 
     public static function forPath(string $path): static
     {
-        return new static(sprintf(
-            'Template path "%s" not found or is not readable.',
-            $path
-        ));
+        return new static([
+            'Template path "{path}" not found or is not readable.',
+            'path' => $path,
+        ]);
     }
 }

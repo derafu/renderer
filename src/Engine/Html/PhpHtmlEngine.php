@@ -16,8 +16,8 @@ use Closure;
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Exception\TemplateNotFoundException;
+use Derafu\Translation\Exception\Core\TranslatableLogicException as LogicException;
 use Derafu\Twig\Contract\TwigServiceInterface;
-use LogicException;
 use Throwable;
 
 /**

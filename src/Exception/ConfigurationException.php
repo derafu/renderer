@@ -19,10 +19,10 @@ final class ConfigurationException extends RendererException
 {
     public static function forMissingOption(string $option): static
     {
-        return new static(sprintf(
-            'Required configuration option "%s" is missing.',
-            $option
-        ));
+        return new static([
+            'Required configuration option "{option}" is missing.',
+            'option' => $option,
+        ]);
     }
 
     public static function forInvalidOption(
@@ -30,11 +30,11 @@ final class ConfigurationException extends RendererException
         string $value,
         string $expected
     ): static {
-        return new static(sprintf(
-            'Invalid value "%s" for configuration option "%s". Expected: %s.',
-            $value,
-            $option,
-            $expected
-        ));
+        return new static([
+            'Invalid value "{value}" for configuration option "{option}". Expected: {expected}.',
+            'value' => $value,
+            'option' => $option,
+            'expected' => $expected,
+        ]);
     }
 }

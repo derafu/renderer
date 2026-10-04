@@ -12,11 +12,11 @@ declare(strict_types=1);
 
 namespace Derafu\Renderer\Exception;
 
-use RuntimeException;
+use Derafu\Translation\Exception\Core\TranslatableRuntimeException;
 
 /**
  * Base exception for all renderer related exceptions.
  */
-class RendererException extends RuntimeException
+class RendererException extends TranslatableRuntimeException
 {
 }
