@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Derafu\Renderer\Formatter\Handler;
 
 use Closure;
+use Derafu\Translation\TranslatableMessage;
 use Throwable;
 
 /**
@@ -127,10 +128,25 @@ class GenericFormatterHandler
         try {
             return json_encode($value, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
         } catch (Throwable $e) {
-            return sprintf(
-                'Serialization for data type %s failed: %s',
-                get_debug_type($value),
-                $e->getMessage()
+            // The text of the error is the formatted value (it is not an
+            // exception, it does not stop the rendering).
+            //
+            // LIMITATION: this text is NOT translated when it is shown. The
+            // message is written to be translatable (English id, parameters, and
+            // an entry in the catalogue of the package), but this handler has no
+            // translator to translate it with, so `(string)` formats it in
+            // English, as it is written. To translate it, the handler would have
+            // to receive a translator, or the error would have to be an exception
+            // (that would stop the rendering): both are changes of behavior or of
+            // the API of the package, so they are not made here.
+            //
+            // The text of the error (`$e->getMessage()`) comes from PHP, or from
+            // the object that failed: it is never translated, it goes as a
+            // parameter inside the sentence of this package.
+            return (string) new TranslatableMessage(
+                'Serialization for data type {type} failed: {message}',
+                ['type' => get_debug_type($value), 'message' => $e->getMessage()],
+                'errors'
             );
         }
     }

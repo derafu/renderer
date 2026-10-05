@@ -40,6 +40,8 @@ return [
         'Error en el manejador de formato "{handler}": {error}',
     'Handler for the format "{format}" not found.' =>
         'No se encontró el manejador para el formato "{format}".',
+    'Serialization for data type {type} failed: {message}' =>
+        'La serialización del tipo de dato {type} falló: {message}',
 
     // Templates.
     'Template "{template}" not found or is not readable.' =>
