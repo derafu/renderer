@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Derafu\Renderer\Formatter\Extension;
 
 use Derafu\Renderer\Contract\FormatterInterface;
+use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
 use Twig\Extension\AbstractExtension;
 use Twig\Markup;
 use Twig\TwigFilter;
@@ -30,6 +31,13 @@ class TwigFormatterExtension extends AbstractExtension
     protected $charset = 'UTF-8';
 
     /**
+     * Generic handler to convert a value to a string.
+     *
+     * @var GenericFormatterHandler
+     */
+    private GenericFormatterHandler $genericHandler;
+
+    /**
      * Extension constructor.
      *
      * Dependency injected to format values.
@@ -44,7 +52,7 @@ class TwigFormatterExtension extends AbstractExtension
     /**
      * Returns the filters available in this extension.
      *
-     * @return array
+     * @return array<int,TwigFilter>
      */
     public function getFilters(): array
     {
@@ -69,15 +77,30 @@ class TwigFormatterExtension extends AbstractExtension
     }
 
     /**
-     * Converts a value to a string.
+     * Converts a value to a string: the text of a scalar, `null` (an empty text)
+     * or an object that can be a string, and JSON for the rest.
      *
      * @param mixed $value
      * @return Markup
      */
     public function to_string(mixed $value): Markup
     {
-        $html = $this->formatter->format($value, 'string');
+        $html = $this->getGenericHandler()->handle($value);
 
         return new Markup($html, $this->charset);
+    }
+
+    /**
+     * Returns the generic handler.
+     *
+     * @return GenericFormatterHandler
+     */
+    private function getGenericHandler(): GenericFormatterHandler
+    {
+        if (!isset($this->genericHandler)) {
+            $this->genericHandler = new GenericFormatterHandler();
+        }
+
+        return $this->genericHandler;
     }
 }

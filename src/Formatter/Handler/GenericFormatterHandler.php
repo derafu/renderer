@@ -14,6 +14,7 @@ namespace Derafu\Renderer\Formatter\Handler;
 
 use Closure;
 use Derafu\Translation\TranslatableMessage;
+use Stringable;
 use Throwable;
 
 /**
@@ -57,7 +58,7 @@ class GenericFormatterHandler
      * Handles the formatting of a value according to the provided handler.
      *
      * @param mixed $value The value to format.
-     * @param string|array|object|null $handler Handler to use for formatting:
+     * @param string|array<mixed>|object|null $handler Handler to use for formatting:
      *   - string: Used as sprintf format.
      *   - array: Used as value mapping.
      *   - Closure: Called with ($value, $format).
@@ -71,15 +72,23 @@ class GenericFormatterHandler
         string|array|object|null $handler = null,
         ?string $format = null
     ): string {
-        // If handler is a string, use it as a sprintf mask.
+        // If handler is a string, use it as a sprintf mask. A value that is not
+        // a scalar or `null` (an array, an object) is its text, as without a
+        // handler.
         if (is_string($handler)) {
-            return sprintf($handler, $value);
+            return sprintf($handler, is_scalar($value) || $value === null ? $value : $this->cast($value));
         }
 
         // If handler is an array, use it as a value mapping.
         // If value not found in map, return original value as string.
         elseif (is_array($handler)) {
-            return $this->cast($handler[$value] ?? $value);
+            // Only a scalar, `null` or a value that is text can be a key of the
+            // map: any other value is not in it.
+            if (is_scalar($value) || $value === null || $value instanceof Stringable) {
+                return $this->cast($handler[(string) $value] ?? $value);
+            }
+
+            return $this->cast($value);
         }
 
         // If Handler is an object, maybe is a Closure or a "repository".
@@ -89,6 +98,12 @@ class GenericFormatterHandler
                 return $this->cast($handler($value, $format));
             }
             // If handler is an object with find(), treat as repository.
+            //
+            // It is `method_exists()` and not an interface on purpose: the
+            // repositories are objects of the applications, with a `find()` that
+            // they already have and that this package does not own, so an
+            // interface of this package would force them to depend on it and to
+            // be adapted. Only the name of the method is the contract.
             elseif (method_exists($handler, 'find')) {
                 $result = $handler->find($value);
                 return $this->cast($result);
@@ -105,7 +120,7 @@ class GenericFormatterHandler
      * The casting priority is:
      *
      *   1. Direct string cast for scalar values and `null`.
-     *   2. __toString() method if available.
+     *   2. Stringable objects.
      *   3. JSON encoding for arrays and objects.
      *   4. Error message if all else fails (not as exception, as a string).
      *
@@ -119,8 +134,8 @@ class GenericFormatterHandler
             return (string) $value;
         }
 
-        // Use __toString() if available.
-        if (is_object($value) && method_exists($value, '__toString')) {
+        // Use the text of an object that can be a string.
+        if ($value instanceof Stringable) {
             return (string) $value;
         }
 

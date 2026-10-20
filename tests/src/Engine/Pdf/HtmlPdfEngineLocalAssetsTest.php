@@ -45,7 +45,8 @@ final class HtmlPdfEngineLocalAssetsTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->originalDocumentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        $this->originalDocumentRoot = is_string($documentRoot) ? $documentRoot : null;
     }
 
     protected function tearDown(): void

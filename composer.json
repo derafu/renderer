@@ -26,15 +26,15 @@
     },
     "require": {
         "php": "^8.5",
-        "derafu/twig": "dev-main",
-        "derafu/translation": "dev-main"
+        "derafu/translation": "dev-main",
+        "derafu/twig": "dev-main"
     },
     "require-dev": {
         "ext-xdebug": "*",
         "friendsofphp/php-cs-fixer": "^3.95",
-        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan": "^2.3",
         "phpunit/phpunit": "^13.4",
-        "derafu/markdown": "^2.0",
+        "derafu/markdown": "^2.1",
         "mpdf/mpdf": "^8.3",
         "nyholm/psr7": "^1.8",
         "nikic/php-parser": "^5.9"

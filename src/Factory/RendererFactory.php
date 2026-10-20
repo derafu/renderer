@@ -14,6 +14,7 @@ namespace Derafu\Renderer\Factory;
 
 use Derafu\Markdown\Service\MarkdownService;
 use Derafu\Renderer\Contract\EngineInterface;
+use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Contract\RendererInterface;
 use Derafu\Renderer\Engine\Html\MarkdownHtmlEngine;
 use Derafu\Renderer\Engine\Html\PhpHtmlEngine;
@@ -23,7 +24,6 @@ use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Extension\TwigFormatterExtension;
 use Derafu\Renderer\Renderer;
 use Derafu\Twig\Contract\TwigServiceInterface;
-use Derafu\Twig\Provider\AllComponentProvider;
 use Derafu\Twig\Service\TwigService;
 
 /**
@@ -61,7 +61,7 @@ use Derafu\Twig\Service\TwigService;
  *         new CustomTwigExtension(),
  *     ],
  *     'extra' => true,
- *     'components' => new CustomComponentProvider(),
+ *     'components' => [CustomComponent::class],
  * ]);
  * ```
  */
@@ -95,12 +95,12 @@ class RendererFactory
      * Twig environment for consistent rendering when needed.
      *
      * @param array{
-     *   paths?: array<string>,
+     *   paths?: list<string>,
      *   engines?: array<string|EngineInterface>,
-     *   formatters?: array<string,mixed>,
+     *   formatters?: array<string,string|array<mixed>|object>,
      *   extensions?: array<\Twig\Extension\ExtensionInterface>,
      *   extra?: bool,
-     *   components?: \Derafu\Twig\Contract\ComponentProviderInterface,
+     *   components?: \Derafu\Twig\Contract\ComponentProviderInterface|iterable<class-string|object>,
      *   pdf?: array<string,mixed>
      * } $options Configuration options:
      *   - paths: Array of template directory paths
@@ -108,7 +108,8 @@ class RendererFactory
      *   - formatters: Array of formatter configurations
      *   - extensions: Array of additional Twig extensions
      *   - extra: Whether to enable extra Twig features
-     *   - components: Component provider for Twig
+     *   - components: Components for Twig (none by default): their classes,
+     *     their instances or a component provider
      *   - pdf: Options passed to the PDF engine (see HtmlPdfEngine), e.g.
      *     'local_assets_path' to resolve root-relative image sources
      *     against the local filesystem instead of over HTTP
@@ -169,7 +170,15 @@ class RendererFactory
      * Creates a TwigService with specified paths, extensions, extra features,
      * and component provider.
      *
-     * @param array<string,mixed> $options Configuration options.
+     * @param array{
+     *   paths?: list<string>,
+     *   formatters?: array<string,string|array<mixed>|object>,
+     *   formatter?: FormatterInterface,
+     *   extensions?: array<\Twig\Extension\ExtensionInterface>,
+     *   extra?: bool,
+     *   components?: \Derafu\Twig\Contract\ComponentProviderInterface|iterable<class-string|object>,
+     *   ...
+     * } $options Configuration options.
      * @return TwigServiceInterface Configured Twig service instance.
      */
     public static function createTwigService(array $options = []): TwigServiceInterface
@@ -177,7 +186,7 @@ class RendererFactory
         $paths = $options['paths'] ?? [];
         $extensions = $options['extensions'] ?? [];
         $extra = $options['extra'] ?? true;
-        $components = $options['components'] ?? new AllComponentProvider();
+        $components = $options['components'] ?? [];
 
         if (!isset($options['formatter'])) {
             $formatters = $options['formatters'] ?? [];

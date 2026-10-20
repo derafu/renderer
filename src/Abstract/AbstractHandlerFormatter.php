@@ -25,7 +25,7 @@ abstract class AbstractHandlerFormatter implements HandlerFormatterInterface
     /**
      * Map of handlers for data formats.
      *
-     * @var array
+     * @var array<string,string|array<mixed>|object>
      */
     private array $handlers;
 
@@ -69,7 +69,7 @@ abstract class AbstractHandlerFormatter implements HandlerFormatterInterface
     /**
      * Creates the map of fields to handlers.
      *
-     * @return array
+     * @return array<string,string|array<mixed>|object>
      */
     abstract protected function createHandlers(): array;
 
@@ -79,7 +79,7 @@ abstract class AbstractHandlerFormatter implements HandlerFormatterInterface
      * The array of handlers is created lazily to avoid loading them in an
      * unnecessary way.
      *
-     * @return array
+     * @return array<string,string|array<mixed>|object>
      */
     private function getHandlers(): array
     {

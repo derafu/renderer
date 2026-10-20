@@ -16,6 +16,7 @@ use Closure;
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Exception\TemplateNotFoundException;
+use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
 use Derafu\Translation\Exception\Core\TranslatableLogicException as LogicException;
 use Derafu\Twig\Contract\TwigServiceInterface;
 use Throwable;
@@ -25,6 +26,13 @@ use Throwable;
  */
 class PhpHtmlEngine implements EngineInterface
 {
+    /**
+     * Generic handler to convert a value to a string.
+     *
+     * @var GenericFormatterHandler
+     */
+    private GenericFormatterHandler $genericHandler;
+
     /**
      * @param TwigServiceInterface $twigService
      * @param FormatterInterface $formatter
@@ -166,6 +174,20 @@ class PhpHtmlEngine implements EngineInterface
     }
 
     /**
+     * Returns the generic handler, that converts a value to a string.
+     *
+     * @return GenericFormatterHandler
+     */
+    private function getGenericHandler(): GenericFormatterHandler
+    {
+        if (!isset($this->genericHandler)) {
+            $this->genericHandler = new GenericFormatterHandler();
+        }
+
+        return $this->genericHandler;
+    }
+
+    /**
      * Creates a set of helper closures for use in PHP templates.
      *
      * This method provides a collection of formatting functions that can be
@@ -195,7 +217,7 @@ class PhpHtmlEngine implements EngineInterface
                 $this->formatter->format($value, $format)
             ,
             'to_string' => fn (mixed $value): string =>
-                $this->formatter->format($value, 'string')
+                $this->getGenericHandler()->handle($value)
             ,
         ];
     }

@@ -38,6 +38,9 @@ class CustomTemplateTest extends TestCase
 {
     private RendererInterface $renderer;
 
+    /**
+     * @var array{title: string, content: string, date: string}
+     */
     private array $data;
 
     public function setUp(): void
@@ -48,7 +51,7 @@ class CustomTemplateTest extends TestCase
             'formatters' => [
                 'date' => function (string $date): string {
                     $timestamp = strtotime($date);
-                    return date('d/m/Y', $timestamp);
+                    return date('d/m/Y', (int) $timestamp);
                 },
             ],
         ]);
@@ -60,7 +63,7 @@ class CustomTemplateTest extends TestCase
         ];
     }
 
-    public function testRenderCustomTemplateHtmlTwig()
+    public function testRenderCustomTemplateHtmlTwig(): void
     {
         $template = __DIR__ . '/../fixtures/custom_template';
         $html = $this->renderer->render($template, $this->data);
@@ -71,7 +74,7 @@ class CustomTemplateTest extends TestCase
         $this->saveRendered($template, 'html', $html);
     }
 
-    public function testRenderCustomTemplateHtmlTwigEnginePdf()
+    public function testRenderCustomTemplateHtmlTwigEnginePdf(): void
     {
         $template = __DIR__ . '/../fixtures/custom_template';
         $pdf = $this->renderer->render($template, $this->data, ['engine' => 'pdf']);
@@ -79,7 +82,7 @@ class CustomTemplateTest extends TestCase
         $this->saveRendered($template, 'pdf', $pdf);
     }
 
-    public function testRenderCustomTemplatePdfTwig()
+    public function testRenderCustomTemplatePdfTwig(): void
     {
         $template = __DIR__ . '/../fixtures/custom_template.pdf.twig';
         $pdf = $this->renderer->render($template, $this->data);
@@ -87,20 +90,20 @@ class CustomTemplateTest extends TestCase
         $this->saveRendered($template, 'pdf', $pdf);
     }
 
-    public function testRenderCustomTemplateMarkdown()
+    public function testRenderCustomTemplateMarkdown(): void
     {
         $template = __DIR__ . '/../fixtures/custom_template.md';
         $html = $this->renderer->render($template, $this->data);
-        // The Markdown engine wraps the heading text with a permalink
-        // anchor, so only the closing tag position is stable to assert on.
-        $this->assertStringContainsString('Derafu</h1>', $html);
+        // The Markdown engine adds a permalink anchor to the heading, so the
+        // heading is its text and, maybe, that anchor.
+        $this->assertMatchesRegularExpression('#<h1[^>]*>Derafu(?:<a\b.*?</a>)?</h1>#s', $html);
         $this->assertStringContainsString('<p>I Love Derafu &lt;3</p>', $html);
         // custom_template.md uses {{ date }} directly, with no formatter.
         $this->assertStringContainsString('Hoy es ' . $this->data['date'] . '.', $html);
         $this->saveRendered($template, 'html', $html);
     }
 
-    public function testRenderCustomTemplatePhp()
+    public function testRenderCustomTemplatePhp(): void
     {
         $template = __DIR__ . '/../fixtures/custom_template.php';
         $html = $this->renderer->render($template, $this->data);

@@ -14,6 +14,7 @@ namespace Derafu\Renderer;
 
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Contract\RendererInterface;
+use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Renderer\Exception\EngineException;
 
 /**
@@ -129,12 +130,12 @@ class Renderer implements RendererInterface
     {
         // If engine is explicitly specified in options, use that engine.
         if (!empty($options['engine'])) {
-            return $options['engine'];
+            return $this->stringOption('engine', $options['engine']);
         }
 
         // If format is explicitly specified in options, translate it to engine.
         if (!empty($options['format'])) {
-            return $this->formatToEngine($options['format']);
+            return $this->formatToEngine($this->stringOption('format', $options['format']));
         }
 
         // Try to determine engine from file extension.
@@ -146,6 +147,20 @@ class Renderer implements RendererInterface
 
         // Use default engine if no specific engine could be determined.
         return $this->defaultEngine;
+    }
+
+    /**
+     * An option that must be a string.
+     *
+     * @throws ConfigurationException If the value is not a string.
+     */
+    private function stringOption(string $name, mixed $value): string
+    {
+        if (!is_string($value)) {
+            throw ConfigurationException::forInvalidOption($name, get_debug_type($value), 'string');
+        }
+
+        return $value;
     }
 
     /**

@@ -18,7 +18,7 @@ interface FormatterInterface
      * Registers a new format handler.
      *
      * @param string $name Optional name for the handler.
-     * @param string|array|object $handler The handler to register.
+     * @param string|array<mixed>|object $handler The handler to register.
      * @return static
      */
     public function registerHandler(

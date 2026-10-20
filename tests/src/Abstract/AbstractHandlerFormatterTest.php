@@ -30,6 +30,9 @@ final class AbstractHandlerFormatterTest extends TestCase
     public function testAFormatWithoutAHandlerIsATranslatableError(): void
     {
         $formatter = new class () extends AbstractHandlerFormatter {
+            /**
+             * @return array<string,string|array<mixed>|object>
+             */
             protected function createHandlers(): array
             {
                 return [];

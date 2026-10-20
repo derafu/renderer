@@ -34,7 +34,7 @@ final class DataFormatter implements FormatterInterface
     /**
      * Creates a new DataFormatter.
      *
-     * @param array<string,string|array|object> $handlers
+     * @param array<string,string|array<mixed>|object> $handlers
      */
     public function __construct(private array $handlers = [])
     {
@@ -88,7 +88,8 @@ final class DataFormatter implements FormatterInterface
      * Resolves the handler and specific format of the handler.
      *
      * @param string $format
-     * @return array<string|int|null,string|null>
+     * @return array{string|null, string} The name of the handler (if there is
+     * one) and the format that the handler receives.
      */
     private function resolveHandler(string $format): array
     {
@@ -99,7 +100,9 @@ final class DataFormatter implements FormatterInterface
 
         // Split format into handler and specific format if dot notation is used.
         if (str_contains($format, '.')) {
-            return explode('.', $format, 2);
+            [$handler, $specificFormat] = explode('.', $format, 2);
+
+            return [$handler, $specificFormat];
         }
 
         // Search for a handler that supports the format.

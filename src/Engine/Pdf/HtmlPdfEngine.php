@@ -133,7 +133,7 @@ class HtmlPdfEngine implements EngineInterface
     ): string {
         // Create PDF from HTML using the selected strategy.
         $strategy = $options['strategy'] ?? self::DEFAULT_STRATEGY;
-        $pdfConfig = $options['config']['pdf'] ?? [];
+        $pdfConfig = $this->pdfConfig($options);
 
         // Use mPDF strategy.
         if ($strategy === self::STRATEGY_MPDF) {
@@ -153,6 +153,37 @@ class HtmlPdfEngine implements EngineInterface
     }
 
     /**
+     * The configuration of the PDF that the runtime options have.
+     *
+     * @param array<string,mixed> $options Runtime options.
+     * @return array<string,mixed>
+     * @throws ConfigurationException If `config.pdf` is not an array of options
+     * with names.
+     */
+    private function pdfConfig(array $options): array
+    {
+        $config = $options['config'] ?? [];
+        if (!is_array($config)) {
+            throw ConfigurationException::forInvalidOption('config', get_debug_type($config), 'array');
+        }
+
+        $pdfConfig = $config['pdf'] ?? [];
+        if (!is_array($pdfConfig)) {
+            throw ConfigurationException::forInvalidOption('config.pdf', get_debug_type($pdfConfig), 'array');
+        }
+
+        $named = [];
+        foreach ($pdfConfig as $name => $value) {
+            if (!is_string($name)) {
+                throw ConfigurationException::forInvalidOption('config.pdf', 'list', 'array with string keys');
+            }
+            $named[$name] = $value;
+        }
+
+        return $named;
+    }
+
+    /**
      * Writes HTML to PDF using mPDF.
      *
      * @param string $html HTML content.
@@ -169,6 +200,9 @@ class HtmlPdfEngine implements EngineInterface
         $localAssetsPath = $options['local_assets_path']
             ?? $this->options['local_assets_path']
             ?? null;
+        if ($localAssetsPath !== null && !is_string($localAssetsPath)) {
+            throw ConfigurationException::forInvalidOption('local_assets_path', get_debug_type($localAssetsPath), 'string');
+        }
         unset($options['local_assets_path']);
 
         $html = $this->rewriteLocalImageSources($html, $localAssetsPath);
@@ -250,6 +284,7 @@ class HtmlPdfEngine implements EngineInterface
     private function resolveLocalPath(string $src, ?string $override): ?string
     {
         $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        $documentRoot = is_string($documentRoot) ? $documentRoot : null;
 
         // array_filter() drops null (and empty-string) entries, so every
         // $base reaching the loop below is guaranteed to be a non-empty
@@ -291,7 +326,7 @@ class HtmlPdfEngine implements EngineInterface
         } catch (Throwable $e) {
             throw ConfigurationException::forInvalidOption(
                 'pdf',
-                json_encode($options),
+                (string) json_encode($options, JSON_PARTIAL_OUTPUT_ON_ERROR),
                 $e->getMessage()
             );
         }
