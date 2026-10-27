@@ -1,0 +1,5 @@
+imports:
+    - { resource: '../../../resources/config/renderer-php-services.yaml' }
+    - { resource: '../../../resources/config/renderer-markdown-services.yaml' }
+    - { resource: '../../../resources/config/renderer-pdf-services.yaml' }
+    - { resource: consumer.yaml }

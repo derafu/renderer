@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace Derafu\TestsRenderer\Engine\Html;
 
 use Derafu\Renderer\Engine\Html\TwigHtmlEngine;
-use Derafu\Renderer\Factory\RendererFactory;
 use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Extension\TwigFormatterExtension;
 use Derafu\Renderer\Renderer;
@@ -32,7 +31,6 @@ use Twig\Loader\ArrayLoader;
  * render them.
  */
 #[CoversClass(TwigHtmlEngine::class)]
-#[UsesClass(RendererFactory::class)]
 #[UsesClass(Renderer::class)]
 #[UsesClass(DataFormatter::class)]
 #[UsesClass(TwigFormatterExtension::class)]
@@ -50,10 +48,8 @@ final class TwigHtmlEngineTest extends TestCase
 
     public function testTheEnvironmentOfARendererIsTheOneThatRendersItsTemplates(): void
     {
-        $renderer = RendererFactory::create([
-            'engines' => ['twig'],
-            'paths' => [__DIR__ . '/../../../fixtures'],
-        ]);
+        $twig = new TwigService(['paths' => [__DIR__ . '/../../../fixtures']]);
+        $renderer = new Renderer([new TwigHtmlEngine($twig)]);
 
         $engine = $renderer->getEngine('twig');
         $this->assertInstanceOf(TwigHtmlEngine::class, $engine);

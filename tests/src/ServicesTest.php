@@ -15,6 +15,10 @@ namespace Derafu\TestsRenderer;
 use Composer\InstalledVersions;
 use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Contract\RendererInterface;
+use Derafu\Renderer\Engine\Html\MarkdownHtmlEngine;
+use Derafu\Renderer\Engine\Html\PhpHtmlEngine;
+use Derafu\Renderer\Engine\Html\TwigHtmlEngine;
+use Derafu\Renderer\Engine\Pdf\HtmlPdfEngine;
 use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Renderer\Exception\EngineException;
 use Derafu\Renderer\Formatter\Extension\TwigFormatterExtension;
@@ -78,6 +82,22 @@ final class ServicesTest extends TestCase
         $renderer = $container->get(RendererInterface::class);
         self::assertInstanceOf(RendererInterface::class, $renderer);
         self::assertSame('Hello Ada', $renderer->renderFromString('Hello {{ name }}', ['name' => 'Ada']));
+    }
+
+    public function testOptionalEngineConfigurationsCanBeImportedTogether(): void
+    {
+        $container = $this->loadContainer('all-engines.yaml');
+        $this->compile($container);
+        $renderer = $container->get(RendererInterface::class);
+        self::assertInstanceOf(RendererInterface::class, $renderer);
+        self::assertInstanceOf(TwigHtmlEngine::class, $renderer->getEngine('twig'));
+        self::assertInstanceOf(MarkdownHtmlEngine::class, $renderer->getEngine('markdown'));
+        self::assertInstanceOf(PhpHtmlEngine::class, $renderer->getEngine('php'));
+        self::assertInstanceOf(HtmlPdfEngine::class, $renderer->getEngine('pdf'));
+        self::assertSame('<main>SITE</main>', $renderer->render('shared.php'));
+        self::assertStringContainsString('<strong>SITE</strong>', $renderer->render('shared.md'));
+        self::assertSame("SITE\n", $renderer->render('shared'));
+        self::assertStringStartsWith('%PDF-', $renderer->render('shared', options: ['engine' => 'pdf']));
     }
 
     public function testDomainsContributePathsWithoutLosingOtherDomains(): void

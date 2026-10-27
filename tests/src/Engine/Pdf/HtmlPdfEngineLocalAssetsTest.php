@@ -14,10 +14,10 @@ namespace Derafu\TestsRenderer\Engine\Pdf;
 
 use Derafu\Renderer\Engine\Html\TwigHtmlEngine;
 use Derafu\Renderer\Engine\Pdf\HtmlPdfEngine;
-use Derafu\Renderer\Factory\RendererFactory;
 use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Extension\TwigFormatterExtension;
 use Derafu\Renderer\Renderer;
+use Derafu\Twig\Service\TwigService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +32,6 @@ use ReflectionMethod;
  * disk, real timing assertions.
  */
 #[CoversClass(HtmlPdfEngine::class)]
-#[UsesClass(RendererFactory::class)]
 #[UsesClass(Renderer::class)]
 #[UsesClass(TwigHtmlEngine::class)]
 #[UsesClass(DataFormatter::class)]
@@ -65,10 +64,10 @@ final class HtmlPdfEngineLocalAssetsTest extends TestCase
         // Deliberately not touching $_SERVER['DOCUMENT_ROOT'] here: the
         // override must win regardless of whatever it is set to.
 
-        $renderer = RendererFactory::create([
-            'engines' => ['twig', 'pdf'],
-            'paths' => [self::FIXTURES_DIR],
-            'pdf' => ['local_assets_path' => self::FIXTURES_DIR . '/assets'],
+        $twig = new TwigService(['paths' => [self::FIXTURES_DIR]]);
+        $renderer = new Renderer([
+            new TwigHtmlEngine($twig),
+            new HtmlPdfEngine($twig, ['local_assets_path' => self::FIXTURES_DIR . '/assets']),
         ]);
 
         $start = hrtime(true);
@@ -97,11 +96,8 @@ final class HtmlPdfEngineLocalAssetsTest extends TestCase
     {
         $_SERVER['DOCUMENT_ROOT'] = self::FIXTURES_DIR . '/assets';
 
-        $renderer = RendererFactory::create([
-            'engines' => ['twig', 'pdf'],
-            'paths' => [self::FIXTURES_DIR],
-            // No 'pdf' options at all: this must work from DOCUMENT_ROOT alone.
-        ]);
+        $twig = new TwigService(['paths' => [self::FIXTURES_DIR]]);
+        $renderer = new Renderer([new TwigHtmlEngine($twig), new HtmlPdfEngine($twig)]);
 
         $start = hrtime(true);
         $pdf = $renderer->render(
@@ -124,10 +120,8 @@ final class HtmlPdfEngineLocalAssetsTest extends TestCase
      */
     public function testAlreadyAbsoluteLocalFilesystemPathIsLeftUntouched(): void
     {
-        $renderer = RendererFactory::create([
-            'engines' => ['twig', 'pdf'],
-            'paths' => [self::FIXTURES_DIR],
-        ]);
+        $twig = new TwigService(['paths' => [self::FIXTURES_DIR]]);
+        $renderer = new Renderer([new TwigHtmlEngine($twig), new HtmlPdfEngine($twig)]);
 
         $realAbsolutePath = self::FIXTURES_DIR . '/assets/img/logo.png';
 
@@ -144,7 +138,7 @@ final class HtmlPdfEngineLocalAssetsTest extends TestCase
 
     public function testResolveLocalPathPrefersTheOverrideThenDocumentRootThenDocumentRootStatic(): void
     {
-        $engine = new HtmlPdfEngine(RendererFactory::createTwigService());
+        $engine = new HtmlPdfEngine(new TwigService());
         $resolve = new ReflectionMethod($engine, 'resolveLocalPath');
 
         $_SERVER['DOCUMENT_ROOT'] = self::FIXTURES_DIR . '/assets';
@@ -201,7 +195,7 @@ final class HtmlPdfEngineLocalAssetsTest extends TestCase
 
     public function testProtocolRelativeAndSchemeSourcesAreNeverRewritten(): void
     {
-        $engine = new HtmlPdfEngine(RendererFactory::createTwigService(), [
+        $engine = new HtmlPdfEngine(new TwigService(), [
             'local_assets_path' => self::FIXTURES_DIR . '/assets',
         ]);
         $rewrite = new ReflectionMethod($engine, 'rewriteLocalImageSources');

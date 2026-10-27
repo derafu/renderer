@@ -15,6 +15,7 @@ namespace Derafu\TestsRenderer\Formatter\Extension;
 use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Extension\TwigFormatterExtension;
 use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
+use Derafu\Twig\Service\TwigService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
@@ -75,5 +76,17 @@ final class TwigFormatterExtensionTest extends TestCase
     public function testFormatAsUsesTheHandlerOfTheFormatter(): void
     {
         $this->assertSame('HELLO', $this->render("{{ 'hello'|format_as('upper') }}"));
+    }
+
+    public function testTheTwigServiceUsesTheFormatterThatIsGiven(): void
+    {
+        $formatter = new DataFormatter(['bracket' => '[%s]']);
+        $service = new TwigService([
+            'extensions' => [new TwigFormatterExtension($formatter)],
+            'extra' => false,
+        ]);
+        $data = [];
+
+        $this->assertSame('[x]', $service->renderFromString("{{ 'x'|format_as('bracket') }}", $data));
     }
 }

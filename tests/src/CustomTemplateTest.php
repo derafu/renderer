@@ -12,21 +12,21 @@ declare(strict_types=1);
 
 namespace Derafu\TestsRenderer;
 
+use Derafu\Markdown\Service\MarkdownService;
 use Derafu\Renderer\Contract\RendererInterface;
 use Derafu\Renderer\Engine\Html\MarkdownHtmlEngine;
 use Derafu\Renderer\Engine\Html\PhpHtmlEngine;
 use Derafu\Renderer\Engine\Html\TwigHtmlEngine;
 use Derafu\Renderer\Engine\Pdf\HtmlPdfEngine;
-use Derafu\Renderer\Factory\RendererFactory;
 use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Extension\TwigFormatterExtension;
 use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
 use Derafu\Renderer\Renderer;
+use Derafu\Twig\Service\TwigService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Renderer::class)]
-#[CoversClass(RendererFactory::class)]
 #[CoversClass(DataFormatter::class)]
 #[CoversClass(GenericFormatterHandler::class)]
 #[CoversClass(TwigFormatterExtension::class)]
@@ -45,15 +45,22 @@ class CustomTemplateTest extends TestCase
 
     public function setUp(): void
     {
-        $this->renderer = RendererFactory::create([
-            'engines' => ['twig', 'markdown', 'php', 'pdf'],
-            'paths' => [__DIR__ . '/../fixtures'],
-            'formatters' => [
-                'date' => function (string $date): string {
-                    $timestamp = strtotime($date);
-                    return date('d/m/Y', (int) $timestamp);
-                },
-            ],
+        $paths = [__DIR__ . '/../fixtures'];
+        $formatter = new DataFormatter([
+            'date' => function (string $date): string {
+                $timestamp = strtotime($date);
+                return date('d/m/Y', (int) $timestamp);
+            },
+        ]);
+        $twig = new TwigService([
+            'paths' => $paths,
+            'extensions' => [new TwigFormatterExtension($formatter)],
+        ]);
+        $this->renderer = new Renderer([
+            new TwigHtmlEngine($twig),
+            new MarkdownHtmlEngine(new MarkdownService(paths: $paths), $twig),
+            new PhpHtmlEngine($twig, $formatter, $paths),
+            new HtmlPdfEngine($twig),
         ]);
 
         $this->data = [
