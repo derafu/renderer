@@ -1,0 +1,21 @@
+imports:
+    - { resource: '../../../resources/config/renderer-services.yaml' }
+
+services:
+    Twig\Loader\LoaderInterface:
+        class: Twig\Loader\ArrayLoader
+        arguments:
+            $templates: { native.html.twig: 'Native {{ source }}' }
+
+    # The environment is an external Twig API with no corresponding interface.
+    Twig\Environment:
+        arguments:
+            $loader: '@Twig\Loader\LoaderInterface'
+            $options: { strict_variables: true }
+        calls:
+            - [addGlobal, [source, preserved]]
+
+    Derafu\Twig\Contract\TwigServiceInterface:
+        class: Derafu\Twig\Service\TwigService
+        arguments:
+            $twig: '@Twig\Environment'

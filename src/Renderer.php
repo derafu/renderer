@@ -42,16 +42,21 @@ class Renderer implements RendererInterface
     private string $defaultEngine;
 
     /**
-     * @param array<string, EngineInterface> $engines Initial set of engines.
+     * @param iterable<array-key, EngineInterface> $engines Named arrays preserve aliases; tagged iterables use engine names in priority order.
      * @param string $defaultEngine Default engine to use.
      */
     public function __construct(
-        array $engines = [],
+        iterable $engines = [],
         string $defaultEngine = 'twig'
     ) {
         $this->defaultEngine = $defaultEngine;
 
-        foreach ($engines as $name => $engine) {
+        $namedArray = is_array($engines);
+        foreach ($engines as $key => $engine) {
+            $name = $namedArray && is_string($key) ? $key : $engine->getName();
+            if (!$namedArray && isset($this->engines[$name])) {
+                continue;
+            }
             $this->addEngine($name, $engine);
         }
     }

@@ -1,0 +1,16 @@
+# Adds the PDF engine to the base Twig renderer, imported below.
+# Requires mpdf/mpdf for the default PDF backend. Uses the shared Twig service
+# and formatter; can be combined with other extras.
+
+imports:
+    - { resource: renderer-services.yaml }
+
+parameters:
+    derafu.renderer.pdf.options: {}
+
+services:
+    Derafu\Renderer\Engine\Pdf\HtmlPdfEngine:
+        arguments:
+            $twigService: '@Derafu\Twig\Contract\TwigServiceInterface'
+            $options: '%derafu.renderer.pdf.options%'
+        tags: ['derafu_renderer.engine']

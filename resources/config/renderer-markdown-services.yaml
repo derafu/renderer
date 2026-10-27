@@ -1,0 +1,21 @@
+# Adds the Markdown engine and imports both the base renderer and Markdown's
+# services. Requires derafu/markdown with its functional service configuration.
+# Uses shared template roots and Twig; can be combined with other extras.
+
+imports:
+    - { resource: renderer-services.yaml }
+    - { resource: '../../../markdown/resources/config/markdown-services.yaml' }
+
+parameters:
+    derafu.renderer.markdown.wrapper_template: html
+    derafu.renderer.markdown.content_var_name: content
+
+services:
+    Derafu\Renderer\Engine\Html\MarkdownHtmlEngine:
+        arguments:
+            $markdownService: '@Derafu\Markdown\Contract\MarkdownServiceInterface'
+            $twigService: '@Derafu\Twig\Contract\TwigServiceInterface'
+            $wrapperTemplate: '%derafu.renderer.markdown.wrapper_template%'
+            $contentVarName: '%derafu.renderer.markdown.content_var_name%'
+            $templatePathProvider: '@Derafu\Twig\Contract\TemplatePathProviderInterface'
+        tags: ['derafu_renderer.engine']

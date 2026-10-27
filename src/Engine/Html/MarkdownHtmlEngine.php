@@ -15,6 +15,7 @@ namespace Derafu\Renderer\Engine\Html;
 use Derafu\Markdown\Contract\MarkdownServiceInterface;
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Exception\ConfigurationException;
+use Derafu\Twig\Contract\TemplatePathProviderInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
 
 /**
@@ -27,12 +28,14 @@ class MarkdownHtmlEngine implements EngineInterface
      * @param TwigServiceInterface $twigService
      * @param ?string $wrapperTemplate
      * @param string $contentVarName
+     * @param TemplatePathProviderInterface|null $templatePathProvider Shared domain template directories.
      */
     public function __construct(
         private MarkdownServiceInterface $markdownService,
         private TwigServiceInterface $twigService,
         private readonly ?string $wrapperTemplate = 'html',
-        private readonly string $contentVarName = 'content'
+        private readonly string $contentVarName = 'content',
+        private readonly ?TemplatePathProviderInterface $templatePathProvider = null
     ) {
     }
 
@@ -48,7 +51,7 @@ class MarkdownHtmlEngine implements EngineInterface
         $context = array_replace_recursive(['options' => $options], $data);
 
         // Render template with the context.
-        $html = $this->markdownService->render($template, $context);
+        $html = $this->markdownService->render($this->resolveTemplate($template), $context);
 
         // Determine if we need to render a wrapper template.
         $wrapperTemplate = $this->wrapperTemplate($context);
@@ -92,6 +95,26 @@ class MarkdownHtmlEngine implements EngineInterface
         );
 
         return $this->twigService->render($wrapperTemplate, $wrapperContext);
+    }
+
+    /**
+     * Shared template roots take precedence; the Markdown service retains its
+     * own lookup as a fallback when no shared file matches.
+     */
+    private function resolveTemplate(string $template): string
+    {
+        if ($this->templatePathProvider === null || realpath($template) !== false) {
+            return $template;
+        }
+        $filename = str_ends_with($template, '.md') ? $template : $template . '.md';
+        foreach ($this->templatePathProvider->getPaths() as $directory) {
+            $file = $directory . '/' . $filename;
+            if (is_file($file)) {
+                return $file;
+            }
+        }
+
+        return $template;
     }
 
     /**

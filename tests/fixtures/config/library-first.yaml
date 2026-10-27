@@ -1,0 +1,9 @@
+imports:
+    - { resource: consumer.yaml }
+
+services:
+    Derafu\TestsRenderer\Fixture\SiteTemplatePathProvider:
+        arguments:
+            $root: '%fixture.templates%'
+        tags:
+            - { name: derafu_twig.template_path_provider, priority: 50 }

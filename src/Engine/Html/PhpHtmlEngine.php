@@ -18,6 +18,7 @@ use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Exception\TemplateNotFoundException;
 use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
 use Derafu\Translation\Exception\Core\TranslatableLogicException as LogicException;
+use Derafu\Twig\Contract\TemplatePathProviderInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
 use Throwable;
 
@@ -36,7 +37,7 @@ class PhpHtmlEngine implements EngineInterface
     /**
      * @param TwigServiceInterface $twigService
      * @param FormatterInterface $formatter
-     * @param array<string> $paths
+     * @param array<string>|TemplatePathProviderInterface $paths
      * @param string $wrapperTemplate
      * @param string $contentVarName
      * @param string $varsPrefix
@@ -44,7 +45,7 @@ class PhpHtmlEngine implements EngineInterface
     public function __construct(
         private TwigServiceInterface $twigService,
         private readonly FormatterInterface $formatter,
-        private readonly array $paths = [],
+        private readonly array|TemplatePathProviderInterface $paths = [],
         private readonly string $wrapperTemplate = 'html',
         private readonly string $contentVarName = 'content',
         private readonly string $varsPrefix = '__view_'
@@ -163,7 +164,8 @@ class PhpHtmlEngine implements EngineInterface
         }
 
         // Search in configured paths.
-        foreach ($this->paths as $path) {
+        $paths = $this->paths instanceof TemplatePathProviderInterface ? $this->paths->getPaths() : $this->paths;
+        foreach ($paths as $path) {
             $file = $path . '/' . $template;
             if (file_exists($file)) {
                 return $file;

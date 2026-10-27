@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Derafu\Renderer\Formatter;
 
+use Derafu\Renderer\Contract\FormatterHandlerProviderInterface;
 use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Contract\HandlerFormatterInterface;
 use Derafu\Renderer\Exception\FormatterException;
@@ -35,9 +36,13 @@ final class DataFormatter implements FormatterInterface
      * Creates a new DataFormatter.
      *
      * @param array<string,string|array<mixed>|object> $handlers
+     * @param iterable<FormatterHandlerProviderInterface> $handlerProviders Highest priority first; explicit handlers take precedence.
      */
-    public function __construct(private array $handlers = [])
+    public function __construct(private array $handlers = [], iterable $handlerProviders = [])
     {
+        foreach ($handlerProviders as $provider) {
+            $this->handlers += $provider->getHandlers();
+        }
     }
 
     /**

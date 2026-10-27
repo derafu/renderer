@@ -37,7 +37,7 @@
         "symfony/config": "^8.1",
         "symfony/dependency-injection": "^8.1",
         "symfony/yaml": "^8.1",
-        "derafu/markdown": "^2.1",
+        "derafu/markdown": "^2.2",
         "mpdf/mpdf": "^8.3",
         "nyholm/psr7": "^1.8",
         "nikic/php-parser": "^5.9"

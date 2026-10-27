@@ -1,0 +1,22 @@
+# Adds the PHP engine to the base Twig renderer, imported below.
+# Uses the shared formatter and template-path providers; the wrapper template
+# is configured by the parameters below. Can be combined with other extras.
+
+imports:
+    - { resource: renderer-services.yaml }
+
+parameters:
+    derafu.renderer.php.wrapper_template: html
+    derafu.renderer.php.content_var_name: content
+    derafu.renderer.php.vars_prefix: __view_
+
+services:
+    Derafu\Renderer\Engine\Html\PhpHtmlEngine:
+        arguments:
+            $twigService: '@Derafu\Twig\Contract\TwigServiceInterface'
+            $formatter: '@Derafu\Renderer\Contract\FormatterInterface'
+            $paths: '@Derafu\Twig\Contract\TemplatePathProviderInterface'
+            $wrapperTemplate: '%derafu.renderer.php.wrapper_template%'
+            $contentVarName: '%derafu.renderer.php.content_var_name%'
+            $varsPrefix: '%derafu.renderer.php.vars_prefix%'
+        tags: ['derafu_renderer.engine']

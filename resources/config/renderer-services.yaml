@@ -1,20 +1,47 @@
-# Optional wiring for apps using symfony/dependency-injection.
-# Import it from your own services.yaml:
+# Renderer and formatting composition, including Twig's default services.
+# Consumers can override TwigServiceInterface with an existing environment.
 #
-#   imports:
-#       - { resource: '../vendor/derafu/renderer/resources/config/renderer-services.yaml' }
+# Optional engines are cumulative. Import one or more of these files from the
+# application's services.yaml; each already imports this base configuration:
+#
+# imports:
+#     - { resource: '../vendor/derafu/renderer/resources/config/renderer-php-services.yaml' }
+#     - { resource: '../vendor/derafu/renderer/resources/config/renderer-markdown-services.yaml' }
+#     - { resource: '../vendor/derafu/renderer/resources/config/renderer-pdf-services.yaml' }
+#
+# They add engines without replacing contributed template paths or handlers.
+
+imports:
+    - { resource: '../../../twig/resources/config/twig-services.yaml' }
+parameters:
+    derafu.renderer.default_engine: twig
 
 services:
-
     _defaults:
         autowire: true
         autoconfigure: true
         public: false
 
-    # Feeds resources/translations into the consuming app's Translator (the
-    # app must pass $resourceProviders: !tagged_iterator
-    # derafu_translation.resource_provider to TranslatorFactory::create(),
-    # see derafu/translation's translation-services.yaml). The tag is
-    # explicit because _instanceof does not propagate across imported files.
+    Derafu\Renderer\Contract\RendererInterface:
+        class: Derafu\Renderer\Renderer
+        arguments:
+            $engines: !tagged_iterator derafu_renderer.engine
+            $defaultEngine: '%derafu.renderer.default_engine%'
+
+    Derafu\Renderer\Contract\FormatterInterface:
+        class: Derafu\Renderer\Formatter\DataFormatter
+        arguments:
+            $handlerProviders: !tagged_iterator derafu_renderer.formatter_handler_provider
+
+    Derafu\Renderer\Engine\Html\TwigHtmlEngine:
+        arguments:
+            $twigService: '@Derafu\Twig\Contract\TwigServiceInterface'
+        tags: ['derafu_renderer.engine']
+
+    Derafu\Renderer\Provider\FormatterExtensionProvider:
+        arguments:
+            $formatter: '@Derafu\Renderer\Contract\FormatterInterface'
+        tags: ['derafu_twig.extension_provider']
+
     Derafu\Renderer\Translation\RendererTranslationResourceProvider:
         tags: ['derafu_translation.resource_provider']

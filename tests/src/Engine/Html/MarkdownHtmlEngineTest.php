@@ -16,6 +16,7 @@ use Derafu\Markdown\Service\MarkdownService;
 use Derafu\Renderer\Engine\Html\MarkdownHtmlEngine;
 use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Translation\Contract\TranslatableInterface;
+use Derafu\Twig\Contract\TemplatePathProviderInterface;
 use Derafu\Twig\Service\TwigService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -168,5 +169,36 @@ final class MarkdownHtmlEngineTest extends TestCase
 
         $this->assertSame('markdown', $engine->getName());
         $this->assertSame(['md', 'markdown'], $engine->getSupportedExtensions());
+    }
+
+    public function testSharedPathsFindMarkdownFilesBeforeServiceFallbackPaths(): void
+    {
+        $provider = new class ($this->directory) implements TemplatePathProviderInterface {
+            public function __construct(private readonly string $directory)
+            {
+            }
+
+            public function getPaths(): array
+            {
+                return [$this->directory];
+            }
+        };
+        $twig = new TwigService(new Environment(new ArrayLoader()));
+        $engine = new MarkdownHtmlEngine(new MarkdownService(), $twig, null, templatePathProvider: $provider);
+        self::assertStringContainsString('<strong>World</strong>', $engine->render('page'));
+        self::assertStringContainsString('<strong>World</strong>', $engine->render($this->directory . '/page.md'));
+    }
+
+    public function testTheMarkdownServicesOwnPathsRemainAFallback(): void
+    {
+        $provider = new class () implements TemplatePathProviderInterface {
+            public function getPaths(): array
+            {
+                return [];
+            }
+        };
+        $twig = new TwigService(new Environment(new ArrayLoader()));
+        $engine = new MarkdownHtmlEngine(new MarkdownService(paths: [$this->directory]), $twig, null, templatePathProvider: $provider);
+        self::assertStringContainsString('<strong>World</strong>', $engine->render('page'));
     }
 }

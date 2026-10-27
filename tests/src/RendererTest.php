@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Derafu\TestsRenderer;
 
+use ArrayIterator;
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Renderer\Exception\EngineException;
@@ -167,5 +168,25 @@ final class RendererTest extends TestCase
         $twig = $this->engine('twig');
 
         $this->assertSame($twig, (new Renderer(['twig' => $twig]))->getEngine('twig'));
+    }
+
+    public function testAnIterableUsesEngineNamesAndKeepsTheFirstDuplicate(): void
+    {
+        $preferred = $this->engine('twig', ['html.twig']);
+        $fallback = $this->engine('twig', ['html.twig']);
+        $renderer = new Renderer(new ArrayIterator([
+            'preferred.service' => $preferred,
+            'fallback.service' => $fallback,
+        ]));
+        self::assertSame($preferred, $renderer->getEngine('twig'));
+        self::assertSame('twig renders page.html.twig', $renderer->render('page.html.twig'));
+    }
+
+    public function testNamedArraysPreserveExplicitEngineAliases(): void
+    {
+        $engine = $this->engine('internal');
+        $renderer = new Renderer(['public_alias' => $engine], 'public_alias');
+        self::assertSame($engine, $renderer->getEngine('public_alias'));
+        self::assertSame('internal renders from string Hello', $renderer->renderFromString('Hello'));
     }
 }

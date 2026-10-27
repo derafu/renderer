@@ -18,6 +18,7 @@ use Derafu\Renderer\Exception\TemplateNotFoundException;
 use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
 use Derafu\Translation\Contract\TranslatableInterface;
+use Derafu\Twig\Contract\TemplatePathProviderInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
 use Derafu\Twig\Service\TwigService;
 use LogicException;
@@ -176,5 +177,23 @@ final class PhpHtmlEngineTest extends TestCase
 
         $this->assertSame('php', $engine->getName());
         $this->assertSame(['php', 'phtml'], $engine->getSupportedExtensions());
+    }
+
+    public function testThePhpEngineReadsPathsFromAProvider(): void
+    {
+        file_put_contents($this->directory . '/provided.php', '<p><?= $name ?></p>');
+        $provider = new class ($this->directory) implements TemplatePathProviderInterface {
+            public function __construct(private readonly string $directory)
+            {
+            }
+
+            public function getPaths(): array
+            {
+                return [$this->directory];
+            }
+        };
+        $twig = new TwigService(new Environment(new ArrayLoader(['html.html.twig' => '<main>{{ content|raw }}</main>'])));
+        $engine = new PhpHtmlEngine($twig, new DataFormatter(), $provider);
+        self::assertSame('<main><p>Ada</p></main>', $engine->render('provided', ['name' => 'Ada']));
     }
 }

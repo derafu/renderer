@@ -1,0 +1,58 @@
+imports:
+    - { resource: '../../../resources/config/renderer-services.yaml' }
+
+parameters:
+    derafu.twig.options: { extra: false }
+
+services:
+    Derafu\TestsRenderer\Fixture\CoreTemplatePathProvider:
+        arguments:
+            $root: '%fixture.templates%'
+        tags:
+            - { name: derafu_twig.template_path_provider, priority: 100 }
+
+    Derafu\Renderer\Contract\HandlerFormatterInterface $core:
+        class: Derafu\TestsRenderer\Fixture\PrefixFormatterHandler
+        arguments:
+            $prefix: CORE
+
+    Derafu\TestsRenderer\Fixture\CoreFormatterHandlerProvider:
+        arguments:
+            $handler: '@Derafu\Renderer\Contract\HandlerFormatterInterface $core'
+        tags:
+            - { name: derafu_renderer.formatter_handler_provider, priority: 100 }
+
+    Derafu\TestsRenderer\Fixture\ProTemplatePathProvider:
+        arguments:
+            $root: '%fixture.templates%'
+        tags:
+            - { name: derafu_twig.template_path_provider, priority: 200 }
+
+    Derafu\Renderer\Contract\HandlerFormatterInterface $pro:
+        class: Derafu\TestsRenderer\Fixture\PrefixFormatterHandler
+        arguments:
+            $prefix: PRO
+
+    Derafu\TestsRenderer\Fixture\ProFormatterHandlerProvider:
+        arguments:
+            $handler: '@Derafu\Renderer\Contract\HandlerFormatterInterface $pro'
+        tags:
+            - { name: derafu_renderer.formatter_handler_provider, priority: 200 }
+
+    Derafu\TestsRenderer\Fixture\SiteTemplatePathProvider:
+        arguments:
+            $root: '%fixture.templates%'
+        tags:
+            - { name: derafu_twig.template_path_provider, priority: 300 }
+
+    Derafu\Renderer\Contract\HandlerFormatterInterface $site:
+        class: Derafu\TestsRenderer\Fixture\PrefixFormatterHandler
+        arguments:
+            $prefix: SITE
+
+    Derafu\TestsRenderer\Fixture\SiteFormatterHandlerProvider:
+        arguments:
+            $handler: '@Derafu\Renderer\Contract\HandlerFormatterInterface $site'
+        tags:
+            - { name: derafu_renderer.formatter_handler_provider, priority: 300 }
+

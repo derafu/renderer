@@ -1,0 +1,29 @@
+imports:
+    - { resource: consumer.yaml }
+
+services:
+    Derafu\Twig\Contract\TemplatePathProviderInterface $isolated:
+        class: Derafu\TestsRenderer\Fixture\CoreTemplatePathProvider
+        arguments:
+            $root: '%fixture.templates%'
+
+    Derafu\Twig\Contract\TwigCreatorInterface $isolated:
+        parent: Derafu\Twig\Contract\TwigCreatorInterface
+        arguments:
+            $templatePathProvider: '@Derafu\Twig\Contract\TemplatePathProviderInterface $isolated'
+
+    Derafu\Twig\Contract\TwigServiceInterface $isolated:
+        parent: Derafu\Twig\Contract\TwigServiceInterface
+        arguments:
+            $twig: '@Derafu\Twig\Contract\TwigCreatorInterface $isolated'
+
+    Derafu\Renderer\Contract\EngineInterface $isolated:
+        class: Derafu\Renderer\Engine\Html\TwigHtmlEngine
+        arguments:
+            $twigService: '@Derafu\Twig\Contract\TwigServiceInterface $isolated'
+        tags: ['fixture.isolated_engine']
+
+    Derafu\Renderer\Contract\RendererInterface $isolated:
+        parent: Derafu\Renderer\Contract\RendererInterface
+        arguments:
+            $engines: !tagged_iterator fixture.isolated_engine

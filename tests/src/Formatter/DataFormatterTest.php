@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Derafu\TestsRenderer\Formatter;
 
+use Derafu\Renderer\Contract\FormatterHandlerProviderInterface;
 use Derafu\Renderer\Contract\HandlerFormatterInterface;
 use Derafu\Renderer\Exception\FormatterException;
 use Derafu\Renderer\Formatter\DataFormatter;
@@ -147,5 +148,26 @@ final class DataFormatterTest extends TestCase
         $this->assertInstanceOf(FormatterException::class, $exception);
         $this->assertInstanceOf(TranslatableInterface::class, $exception);
         $this->assertSame('Error in formatter handler "broken": It does not work.', $exception->getMessage());
+    }
+
+    public function testProviderPriorityPreservesOtherDomainsAndExplicitHandlers(): void
+    {
+        $higher = new class () implements FormatterHandlerProviderInterface {
+            public function getHandlers(): array
+            {
+                return ['common' => 'PRO:%s'];
+            }
+        };
+        $lower = new class () implements FormatterHandlerProviderInterface {
+            public function getHandlers(): array
+            {
+                return ['common' => 'CORE:%s', 'core_only' => 'ONLY:%s'];
+            }
+        };
+        $formatter = new DataFormatter(handlerProviders: [$higher, $lower]);
+        self::assertSame('PRO:42', $formatter->format(42, 'common'));
+        self::assertSame('ONLY:42', $formatter->format(42, 'core_only'));
+        $explicit = new DataFormatter(['common' => 'EXPLICIT:%s'], [$higher, $lower]);
+        self::assertSame('EXPLICIT:42', $explicit->format(42, 'common'));
     }
 }
