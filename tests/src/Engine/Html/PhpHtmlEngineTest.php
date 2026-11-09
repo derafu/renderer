@@ -14,18 +14,23 @@ namespace Derafu\TestsRenderer\Engine\Html;
 
 use Derafu\Renderer\Contract\FormatterInterface;
 use Derafu\Renderer\Engine\Html\PhpHtmlEngine;
+use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Renderer\Exception\TemplateNotFoundException;
 use Derafu\Renderer\Formatter\DataFormatter;
 use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
+use Derafu\Renderer\Translation\RendererTranslationResourceProvider;
 use Derafu\Translation\Contract\TranslatableInterface;
+use Derafu\Translation\TranslatorFactory;
 use Derafu\Twig\Contract\TemplatePathProviderInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
 use Derafu\Twig\Service\TwigService;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use stdClass;
 use Throwable;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -36,6 +41,8 @@ use Twig\Loader\ArrayLoader;
  */
 #[CoversClass(PhpHtmlEngine::class)]
 #[UsesClass(TemplateNotFoundException::class)]
+#[UsesClass(ConfigurationException::class)]
+#[UsesClass(RendererTranslationResourceProvider::class)]
 #[UsesClass(DataFormatter::class)]
 #[UsesClass(GenericFormatterHandler::class)]
 final class PhpHtmlEngineTest extends TestCase
@@ -145,6 +152,49 @@ final class PhpHtmlEngineTest extends TestCase
         $engine = $this->engine(['page.php' => 'x']);
 
         $this->assertSame('<aside>x|-</aside>', $engine->render('page', ['wrapperTemplate' => 'other']));
+    }
+
+    public function testANullWrapperKeepsTheConfiguredWrapper(): void
+    {
+        $engine = $this->engine(['page.php' => 'x'], 'other');
+
+        $this->assertSame('<aside>x|-</aside>', $engine->render('page', ['wrapperTemplate' => null]));
+    }
+
+    /** @return iterable<string, array{mixed}> */
+    public static function invalidWrappers(): iterable
+    {
+        yield 'integer' => [1];
+        yield 'float' => [1.5];
+        yield 'false' => [false];
+        yield 'true' => [true];
+        yield 'array' => [['other']];
+        yield 'object' => [new stdClass()];
+    }
+
+    #[DataProvider('invalidWrappers')]
+    public function testInvalidWrapperTypesHaveATranslatedConfigurationError(mixed $wrapper): void
+    {
+        $engine = $this->engine(['page.php' => 'x']);
+        $bufferLevel = ob_get_level();
+
+        try {
+            $engine->render('page', ['wrapperTemplate' => $wrapper]);
+            $this->fail('An invalid wrapper must be rejected.');
+        } catch (ConfigurationException $exception) {
+            $type = get_debug_type($wrapper);
+            $this->assertSame(
+                'Invalid value "' . $type . '" for configuration option "wrapperTemplate". Expected: string.',
+                $exception->getMessage()
+            );
+            $translator = TranslatorFactory::create('es', resourceProviders: [new RendererTranslationResourceProvider()]);
+            $this->assertSame(
+                'Valor inválido "' . $type . '" para la opción de configuración "wrapperTemplate". Se esperaba: string.',
+                $exception->trans($translator)
+            );
+        }
+
+        $this->assertSame($bufferLevel, ob_get_level());
     }
 
     public function testTheVariablesWithThePrefixOfTheTemplateAreForTheWrapper(): void

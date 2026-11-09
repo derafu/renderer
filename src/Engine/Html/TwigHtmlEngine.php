@@ -14,6 +14,7 @@ namespace Derafu\Renderer\Engine\Html;
 
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
+use Derafu\Value\ValueType;
 use Twig\Environment;
 
 /**
@@ -55,7 +56,7 @@ class TwigHtmlEngine implements EngineInterface
         array $options = []
     ): string {
         // Merge runtime options with template data.
-        $context = array_replace_recursive(['options' => $options], $data);
+        $context = ValueType::map()->parse(array_replace_recursive(['options' => $options], $data), source: 'Twig HTML context');
 
         // Render template with the context.
         return $this->twigService->render($template, $context);
@@ -70,7 +71,7 @@ class TwigHtmlEngine implements EngineInterface
         array $options = []
     ): string {
         // Merge runtime options with template data.
-        $context = array_replace_recursive(['options' => $options], $data);
+        $context = ValueType::map()->parse(array_replace_recursive(['options' => $options], $data), source: 'Twig HTML context');
 
         // Render template with the context.
         return $this->twigService->renderFromString($content, $context);

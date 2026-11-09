@@ -17,6 +17,7 @@ use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Twig\Contract\TemplatePathProviderInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
+use Derafu\Value\ValueType;
 
 /**
  * Markdown template engine implementation using CommonMark.
@@ -48,7 +49,7 @@ class MarkdownHtmlEngine implements EngineInterface
         array $options = []
     ): string {
         // Merge runtime options with template data.
-        $context = array_replace_recursive(['options' => $options], $data);
+        $context = ValueType::map()->parse(array_replace_recursive(['options' => $options], $data), source: 'Markdown HTML context');
 
         // Render template with the context.
         $html = $this->markdownService->render($this->resolveTemplate($template), $context);
@@ -77,7 +78,7 @@ class MarkdownHtmlEngine implements EngineInterface
         array $options = []
     ): string {
         // Merge runtime options with template data.
-        $context = array_replace_recursive(['options' => $options], $data);
+        $context = ValueType::map()->parse(array_replace_recursive(['options' => $options], $data), source: 'Markdown HTML context');
 
         // Render template with the context.
         $html = $this->markdownService->renderFromString($content, $context);

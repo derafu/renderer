@@ -18,6 +18,8 @@ return [
         'Valor inválido "{value}" para la opción de configuración "{option}". Se esperaba: {expected}.',
 
     // Engines.
+    'The generated PDF must be a string; {type} given.' =>
+        'El PDF generado debe ser un string; se recibió {type}.',
     'Rendering engine "{engine}" not found.' =>
         'No se encontró el motor de renderizado "{engine}".',
     'No engine found for extension "{extension}".' =>

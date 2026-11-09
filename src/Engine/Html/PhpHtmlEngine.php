@@ -15,11 +15,13 @@ namespace Derafu\Renderer\Engine\Html;
 use Closure;
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Contract\FormatterInterface;
+use Derafu\Renderer\Exception\ConfigurationException;
 use Derafu\Renderer\Exception\TemplateNotFoundException;
 use Derafu\Renderer\Formatter\Handler\GenericFormatterHandler;
 use Derafu\Translation\Exception\Core\TranslatableLogicException as LogicException;
 use Derafu\Twig\Contract\TemplatePathProviderInterface;
 use Derafu\Twig\Contract\TwigServiceInterface;
+use Derafu\Value\ValueType;
 use Throwable;
 
 /**
@@ -65,6 +67,10 @@ class PhpHtmlEngine implements EngineInterface
         $__viewVarsPrefix = $this->varsPrefix;
 
         // Create clean scope for template.
+        /**
+         * @param array<string, mixed> $__data
+         * @param-out array<string, mixed> $__data
+         */
         $render = function (string $__file, array &$__data) use ($__viewVarsPrefix) {
             // Extract variables into template scope.
             extract($__data, EXTR_REFS | EXTR_SKIP);
@@ -100,9 +106,13 @@ class PhpHtmlEngine implements EngineInterface
 
         // Render template with the context.
         $html = $render($file, $context);
+        $context = ValueType::map()->parse($context, source: 'PHP HTML context');
 
         // Render wrapper with twig template.
         $wrapperTemplate = $context['wrapperTemplate'] ?? $this->wrapperTemplate;
+        if (!is_string($wrapperTemplate)) {
+            throw ConfigurationException::forInvalidOption('wrapperTemplate', get_debug_type($wrapperTemplate), 'string');
+        }
         $wrapperContext = array_merge(
             $context,
             [$this->contentVarName => $html]

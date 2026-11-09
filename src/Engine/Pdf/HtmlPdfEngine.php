@@ -14,8 +14,10 @@ namespace Derafu\Renderer\Engine\Pdf;
 
 use Derafu\Renderer\Contract\EngineInterface;
 use Derafu\Renderer\Exception\ConfigurationException;
+use Derafu\Renderer\Exception\RendererException;
 use Derafu\Translation\Exception\Core\TranslatableLogicException as LogicException;
 use Derafu\Twig\Contract\TwigServiceInterface;
+use Derafu\Value\ValueType;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 use Throwable;
@@ -71,10 +73,10 @@ class HtmlPdfEngine implements EngineInterface
         array $options = []
     ): string {
         // Merge runtime options with template data.
-        $context = array_replace_recursive(
+        $context = ValueType::map()->parse(array_replace_recursive(
             ['options' => $options],
             $data
-        );
+        ), source: 'HTML PDF context');
 
         // Render template to HTML using the Twig service.
         $html = $this->twigService->render($template, $context);
@@ -92,10 +94,10 @@ class HtmlPdfEngine implements EngineInterface
         array $options = []
     ): string {
         // Merge runtime options with template data.
-        $context = array_replace_recursive(
+        $context = ValueType::map()->parse(array_replace_recursive(
             ['options' => $options],
             $data
-        );
+        ), source: 'HTML PDF context');
 
         // Render template to HTML using the Twig service.
         $html = $this->twigService->renderFromString($content, $context);
@@ -210,7 +212,15 @@ class HtmlPdfEngine implements EngineInterface
         $pdf = $this->getMpdfInstance($options);
         $pdf->WriteHTML($html);
 
-        return $pdf->Output('', Destination::STRING_RETURN);
+        $content = $pdf->Output('', Destination::STRING_RETURN);
+        if (!is_string($content)) {
+            throw new RendererException([
+                'The generated PDF must be a string; {type} given.',
+                'type' => get_debug_type($content),
+            ]);
+        }
+
+        return $content;
     }
 
     /**
